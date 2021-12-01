@@ -1,0 +1,5 @@
+#!/usr/bin/bash
+python3 ../src/MyPython2.py  /home/dano/research/go2/data/C2S6N00014/scenario_001/case.con /home/dano/research/go2/data/C2S6N00014/scenario_001/case.json /home/dano/research/go2/data/C2S6N00014/scenario_001/case.raw 0 600 1 C2S6N00014
+
+#python3 ../src/MyPython1.py /home/dano/research/go2/data/C2S7N00793/scenario_001/case.con /home/dano/research/go2/data/C2S7N00793/scenario_001/case.json /home/dano/research/go2/data/C2S7N00793/scenario_001/case.raw 0 600 1 C2S7N00793
+

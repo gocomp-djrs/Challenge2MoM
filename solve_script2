@@ -1,0 +1,123 @@
+# Perform initial solve
+solve;
+#solve > /dev/null; # use this to re-direct ampl output to null device
+
+#display ourobjective.feaserror;
+
+# Round and fix all integer variables
+
+# display before values of possibly relaxed integer variables
+#display xstf;
+#display binxstf;
+#display xha;
+#display ntrON;
+#display trON;
+#display genon;
+#display genstartup;
+#display genshutdown;
+
+# Transformer tap settings
+for {i in 1..TRcnt_original} {
+    let xstf[i] := round( max(min(xstf[i],maxxstf[i]),minxstf[i]) );
+    for {m in minxstf[i]..maxxstf[i]} {
+    	if xstf[i] == m then {
+	   let binxstf[i,m] := 1;
+	}
+	else {
+           let binxstf[i,m] := 0;
+	}
+    }
+}
+fix {i in 1..TRcnt_original} xstf[i];
+fix {i in 1..TRcnt_original, m in minxstf[i]..maxxstf[i]} binxstf[i,m];
+
+# Switched shunt susceptance
+for {h in 1..SWSHcnt, a in 1..bhasize[h]: swshactive[h]*nha[h,a]>0} {
+    let xha[h,a] := round( max(min(xha[h,a],nha[h,a]),0) );
+}
+fix {h in 1..SWSHcnt, a in 1..bhasize[h]: swshactive[h]*nha[h,a]>0} xha[h,a];
+
+# Line switch
+fix {i in 1..NTRcnt_original} ntrON[i] := round( max(min(ntrON[i],1),0) );
+
+# Transformer switch
+fix {i in 1..TRcnt_original} trON[i] := round( max(min(trON[i],1),0) );
+
+# Generator commitment decision variables
+for {g in 1..G} {
+    if genon[g] < 0.5 then {
+       let genon[g] := 0;
+       if genonexist[g] > 0 then {
+          let genstartup[g] := 0;
+          if (gensdqualctg[g] > 0 and genstartup0[g] == 0) then {
+             # if qualified to shutdown and not started in base case, shutdown
+	     let genshutdown[g] := 1;
+	  }
+	  else {
+	     # not permitted to shut down, so leave on
+	     let genon[g] := 1;
+	     let genshutdown[g] := 0;
+	  }
+       }
+       else {
+          let genstartup[g] := 0;
+	  let genshutdown[g] := 0;
+       }
+    }
+    else {
+       let genon[g] := 1;
+       if genonexist[g] > 0 then {
+       	  let genstartup[g] := 0;
+	  let genshutdown[g] := 0;
+       }
+       else {
+          let genshutdown[g] := 0;
+          if (gensuqualctg[g] > 0 and genshutdown0[g] == 0) then {
+             # if qualified to startup and not shutdown in base case, startup
+             let genstartup[g] := 1;
+	  }
+	  else {
+	     # not permitted to startup, so leave off
+	     let genon[g] := 0;
+	     let genstartup[g] := 0;
+	  }
+       }
+    }
+    if (g == genout_index) then {
+       let genon[g] := 0;
+       let genstartup[g] := 0;
+       if genonexist[g] > 0 then {
+          let genshutdown[g] := 1;
+       }
+       else {
+          let genshutdown[g] := 0;
+       }
+    }
+}
+fix {g in 1..G} genon[g];
+fix {g in 1..G} genstartup[g];
+fix {g in 1..G} genshutdown[g];
+
+# display after values of rounded and fixed integer variables
+#display xstf;
+#display binxstf;
+#display xha;
+#display ntrON;
+#display trON;
+#display genon;
+#display genstartup;
+#display genshutdown;
+
+# The re-solve is done back at the Python level so we can first get some timing information
+# and have the option of performing some other tasks before the re-solve
+
+# Set options for re-solve
+# TBD: Set maxtime!
+#option knitro_options "outlev=4 outmode=2 outname='knitro-fixed.log' debug=0 feastol=1e-5 feastol_abs=9e-5 ftol=1e-6 scale=0 honorbnds=1 cg_maxit=50 bar_murule=0 bar_feasible=1 bar_refinement=1 bar_maxcrossit=1 bar_initpi_mpec=0.0 maxit=3000 alg=1 strat_warm_start=1 bar_initmu=1e-6 infeastol=1e-5 opttol=1.0e-3";
+
+# ...and re-solve
+#solve;
+
+#display ourobjective.feaserror;
+
+# tbd: check feasibility - if not feasible take some action

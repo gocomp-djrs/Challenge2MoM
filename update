@@ -1,0 +1,5 @@
+for x in *.py
+do
+echo "file $x"
+git add $x
+done

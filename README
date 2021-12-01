@@ -1,0 +1,16 @@
+This repository holds the code for ARPA-E Go Competition 2.
+
+To clone:
+git clone git@github.com:gocomp-djrs/Challenge2.git
+
+To run:
+python MyPython1.py CON SUP RAW RESERVED TIMELIMIT DIVISION NETWORK
+
+e.g.
+python MyPython1.py case.con case.json case.raw 0 600 1 C2S1N00014
+
+To run relaxed base solve outside of Python:
+- use :write" command in "solve_script" to generate *.nl file
+- use options
+
+  knitroampl trial3_6100_115_base1.nl outlev=4 outmode=2 debug=1 presolve_tol=0.5 linsolver=6 feastol=1e-5 ftol=1e-3 scale=0 honorbnds=0 cg_maxit=1 bar_refinement=1 bar_switchrule=0 bar_feasible=1 restarts=3 restarts_maxit=1000 maxit=3000 relax=1

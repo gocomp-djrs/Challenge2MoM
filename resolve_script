@@ -1,0 +1,163 @@
+# Perform initial re-solve
+# All integer vars should be fixed now, so we should drop constraints putting bounds on these vars
+drop upbndntrON0;
+drop lobndntrON0;
+drop upbndtrON0;
+drop lobndtrON0;
+drop upbndgenON0;
+drop lobndgenON0;
+drop upxha0;
+drop loxha0;
+drop upbndgenstartup0;
+drop lobndgenstartup0;
+drop upbndgenshutdown0;
+drop lobndgenshutdown0;
+solve;
+#solve > /dev/null; # use this to re-direct ampl output to null device
+
+display ourobjective.feaserror;
+display solve_result_num;
+
+if 0 and ourobjective.feaserror >= 0.01 then {
+
+   #display genon0, genstartup0, genshutdown0;
+
+   # First check if any generators were shutdown in this solution
+   # If so, turn them back on and re-solve
+   let count := 0;
+   for {g in 1..G} {
+       if (genshutdown0[g] > 0) then {
+       	  let genshutdown0[g] := 0;
+	  let genstartup0[g] := 0;
+	  if genonexist[g] > 0 then {
+	     let genon0[g] := 1;
+	  }
+	  else {
+	     let genon0[g] := 0;
+	  }
+	  let count := count + 1;
+       }
+   }
+   display count;
+   if count > 0 then {
+      fix {g in 1..G} genon0[g];
+      fix {g in 1..G} genstartup0[g];
+      fix {g in 1..G} genshutdown0[g];
+      solve;
+
+      display ourobjective.feaserror;
+      #display genon0, genstartup0, genshutdown0;
+   }
+}
+
+# Turn back on any lines that have been turned off
+if 0 and ourobjective.feaserror >= 0.01 then {
+
+   #display ntrON0, ntrqualsw, ntrstat;
+   #display trON0, trqualsw, trstat;
+   let count := 0;
+   for {i in 1..NTRcnt_original} {
+       if (ntrON0[i] == 0 and ntrstat[i] == 1) then {
+       	  let ntrON0[i] := 1;
+	  let count := count + 1;
+       }
+   }
+   for {i in 1..TRcnt_original} {
+       if (trON0[i] == 0 and trstat[i] == 1) then {
+       	  let trON0[i] := 1;
+	  let count := count + 1;
+       }
+   }
+   if count > 0 then {
+      fix {i in 1..NTRcnt_original} ntrON0[i];
+      fix {i in 1..TRcnt_original} trON0[i];
+      solve;
+
+      display ourobjective.feaserror;
+      #display ntrON0, trON0;
+   }
+}
+
+if 0 and ourobjective.feaserror >= 0.01 then {
+
+   # Still not feasible - last resort, turn all generators and lines on.
+   let count := 0;
+   for {g in 1..G} {
+       if (genon0[g] == 0) then {
+          if genonexist[g] == 1 then {
+       	     let genshutdown0[g] := 0;
+	     let genstartup0[g] := 0;
+	     let genon0[g] := 1;
+	  }
+	  else {
+	     if (gensuqual[g]) then {
+	     	# turn on generator if qualified to startup
+	     	let genshutdown0[g] := 0;
+	     	let genstartup0[g] := 1;
+	     	let genon0[g] := 1;
+	     }
+	  }
+	  let count := count + 1;
+       }
+   }
+
+   display count;
+   if count > 0 then {
+      fix {g in 1..G} genon0[g];
+      fix {g in 1..G} genstartup0[g];
+      fix {g in 1..G} genshutdown0[g];
+      unfix {i in 1..TRcnt_original} xstf0[i] := 0;
+      unfix {i in 1..TRcnt_original, m in minxstf[i]..maxxstf[i]} binxstf0[i,m] := 0;
+      unfix {h in 1..SWSHcnt, a in 1..bhasize[h]: swshactive[h]*nha[h,a]>0} xha0[h,a] := 0;
+      # TBD: Set maxtime!
+      option knitro_options "outlev=4 outmode=2 outname='knitro-resolve-final1.log' debug=0 feastol=1e-5 feastol_abs=9e-5 ftol=1e-6 scale=0 honorbnds=1 cg_maxit=50 bar_murule=0 bar_feasible=1 bar_refinement=1 bar_maxcrossit=1 bar_switchrule=1 bar_initpi_mpec=0.0 maxit=3000 alg=1 strat_warm_start=1 bar_initmu=1e-6 infeastol=1e-5 opttol=1.0e-3 restarts=2 relax=1";
+      solve;
+
+      display ourobjective.feaserror;
+      #display genon0, ntrON0, trON0;
+      #display LineCurrentTR.lb, LineCurrentTR.body, LineCurrentTR.ub;
+   }
+
+   # Still not feasible - check if any generators turned off.
+   # If so, unfix them, so they can get turned on if needed.
+   # TBD: only for generators near buses with large infeasibilities.
+   #let count := 0;
+   #for {g in 1..G} {
+   #    if (genon0[g] == 0) then {
+   #       unfix genon0[g];
+   #       unfix genstartup0[g];
+   #       unfix genshutdown0[g];
+   #       let count := count + 1;
+   #    }
+   #}
+   #if count > 0 then {
+   #   solve;
+   #}
+
+
+   # Line switch
+   #unfix {i in 1..NTRcnt_original} ntrON[i] := round( max(min(ntrON[i],1),0) );
+
+   # Transformer switch
+   #unfix {i in 1..TRcnt_original} trON[i] := round( max(min(trON[i],1),0) );
+
+   # Generator commitment decision variables
+   #unfix {g in 1..G} genon0[g];
+   #unfix {g in 1..G} genstartup0[g];
+   #unfix {g in 1..G} genshutdown0[g];
+
+   # Set options for re-re-solve
+   # TBD: Set maxtime!
+   	#option knitro_options "outlev=4 outmode=2 outname='knitro-fixed.log' debug=0 feastol=1e-5 feastol_abs=9e-5 ftol=1e-6 scale=0 honorbnds=1 cg_maxit=50 bar_murule=0 bar_feasible=1 bar_refinement=1 bar_maxcrossit=1 bar_initpi_mpec=0.0 maxit=3000 alg=1 strat_warm_start=1 bar_initmu=1e-6 infeastol=1e-5 opttol=1.0e-3";
+
+   # ...and re-re-solve
+   #solve;
+
+   #display ourobjective.feaserror;
+   #display genon0;
+   #display genstartup0;
+   #display genshutdown0;
+
+}
+
+# tbd: check feasibility - if not feasible take some action

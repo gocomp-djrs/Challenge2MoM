@@ -1,0 +1,100 @@
+# Perform initial re-solve
+# All integer vars should be fixed now, so we should drop constraints putting bounds on these vars
+drop upbndntrON;
+drop lobndntrON;
+drop upbndtrON;
+drop lobndtrON;
+drop upbndgenON;
+drop lobndgenON;
+drop upxha;
+drop loxha;
+drop upbndgenstartup;
+drop lobndgenstartup;
+drop upbndgenshutdown;
+drop lobndgenshutdown;
+
+# To scale objective
+#suffix objscalefactor IN;
+#let ourobjective.objscalefactor := 1e-3;
+
+solve;
+#solve > /dev/null; # use this to re-direct ampl output to null device
+
+display ourobjective.feaserror;
+
+if ourobjective.feaserror >= 0.01 then {
+
+   #display genon, genstartup, genshutdown;
+
+   # First check if any generators were shutdown in this contingency solution
+   # If so, turn them back on and re-solve
+   let count := 0;
+   for {g in 1..G} {
+       if (genshutdown[g] > 0 and g != genout_index) then {
+       	  let genshutdown[g] := 0;
+	  let genstartup[g] := 0;
+	  if genonexist[g] > 0 then {
+	     let genon[g] := 1;
+	  }
+	  else {
+	     let genon[g] := 0;
+	  }
+	  let count := count + 1;
+       }
+   }
+   display count;
+   if count > 0 then {
+      fix {g in 1..G} genon[g];
+      fix {g in 1..G} genstartup[g];
+      fix {g in 1..G} genshutdown[g];
+      solve;
+   }
+
+   if 0 and ourobjective.feaserror >= 0.01 then {
+
+        unfix {h in 1..SWSHcnt, a in 1..bhasize[h]: swshactive[h]*nha[h,a]>0} xha[h,a];
+        solve;
+
+        # Still not feasible - check if any generators turned off.
+	# If so, unfix them, so they can get turned on if needed.
+#	let count := 0;
+#   	for {g in 1..G} {
+#       	    if (genon[g] == 0 and g != genout_index) then {
+#	       unfix genon[g];
+#	       unfix genstartup[g];
+#	       unfix genshutdown[g];
+#	       let count := count + 1;
+#       	    }
+#   	}
+#	if count > 0 then {
+#	   solve;
+#	}
+
+	#TBD:try other things (e.g. unfix lines that have been turned off
+
+	# Line switch
+   	#unfix {i in 1..NTRcnt_original} ntrON[i] := round( max(min(ntrON[i],1),0) );
+
+   	# Transformer switch
+   	#unfix {i in 1..TRcnt_original} trON[i] := round( max(min(trON[i],1),0) );
+
+   	# Generator commitment decision variables
+   	#unfix {g in 1..G} genon[g];
+   	#unfix {g in 1..G} genstartup[g];
+   	#unfix {g in 1..G} genshutdown[g];
+
+   	# Set options for re-re-solve
+   	# TBD: Set maxtime!
+   	#option knitro_options "outlev=4 outmode=2 outname='knitro-fixed.log' debug=0 feastol=1e-5 feastol_abs=9e-5 ftol=1e-6 scale=0 honorbnds=1 cg_maxit=50 bar_murule=0 bar_feasible=1 bar_refinement=1 bar_maxcrossit=1 bar_initpi_mpec=0.0 maxit=3000 alg=1 strat_warm_start=1 bar_initmu=1e-6 infeastol=1e-5 opttol=1.0e-3";
+
+   	# ...and re-re-solve
+   	#solve;
+
+   }
+
+   display ourobjective.feaserror;
+   #display genon, genstartup, genshutdown;
+
+}
+
+# tbd: check feasibility - if not feasible take some action

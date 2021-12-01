@@ -1,0 +1,97 @@
+#!/bin/tcsh -f
+#
+## solve individual GO problems using Knitro.
+##
+## Orig:  R. Waltz 2019
+#
+
+\rm score*.txt
+\rm solution_*.txt
+\rm solution2_*.txt
+\rm eval_*.json
+\rm *eval.log
+\rm saved_solution*.bin
+\rm base*.txt
+\rm write_ctgs.log
+\rm heur1.txt
+\rm heur1.bin
+\rm priorbase.txt
+
+# Set main Problem repository
+#set DIR = /Users/rwaltz/go/go2/data/C2S7N
+set DIR = /Users/rwaltz/go/go2/data/C2S6N
+#set DIR = /Users/rwaltz/go/go2/data/C2T1N
+set DIR = /Users/rwaltz/go/go2/data/C2_Trial_2
+set DIR = /Users/rwaltz/go/go2/data/C2_Trial_3
+#set DIR = /Users/rwaltz/go/go2/data/C2_Final_Event
+
+# Set problem name
+set PROB = ${DIR}/C2S6N00014
+#set PROB = ${DIR}/C2S6N00617
+#set PROB = ${DIR}/C2S7N00793
+#set PROB = ${DIR}/C2S7N05752
+#set PROB = ${DIR}/C2S7N09459
+set PROB = ${DIR}/C2T2N00617
+#set PROB = ${DIR}/C2T2N02020
+#set PROB = ${DIR}/C2T2N03022
+#set PROB = ${DIR}/C2T2N04200
+#set PROB = ${DIR}/C2T2N04917
+#set PROB = ${DIR}/C2T2N06100
+#set PROB = ${DIR}/C2T2N07000
+#set PROB = ${DIR}/C2T2N08300
+#set PROB = ${DIR}/C2T2N31777
+
+#set PROB = ${DIR}/C2T3N04200
+#set PROB = ${DIR}/C2T3N06100
+#set PROB = ${DIR}/C2T3N07000
+set PROB = ${DIR}/C2T3N31777 #trial3
+#set PROB = .
+
+#set PROB = ${DIR}/C2FEN31777 #final
+
+set SOLVERDIR = /Users/rwaltz/go/go2/repos/Challenge2-rwaltz
+#set OUTDIR = /Users/rwaltz/go/output/ODReal1/net01
+#set OUTDIR = ${DIR}/
+
+# Set working directory
+
+set SOLVES = $PWD
+
+# Get the list of problems
+
+#set list = `ls -F ${DIR}`
+#set list = $<
+set list = `more testList`
+
+# Now solve
+
+foreach scenario ( $list )
+#while ( "$list" != '' )
+
+# Create directory if necessary
+#    set scenario = $list
+    echo ${scenario}
+    #if( ! -d ${OUTDIR}/${scenario} ) mkdir ${OUTDIR}/${scenario}
+
+# Solve current problem ; keep output on the screen and redirect to a file
+# At the same time, update the summary file.
+    #cd ${scenario}
+    echo "......solving ${scenario}" | tee ${scenario}.knitro
+
+    #python3 MyPython1.py case.con case.json case.raw 0 600 1 'test'
+    #python3 MyPython2.py case.con case.json case.raw 0 600 1 'test'
+    python3 MyPython1.py ${PROB}/${scenario}/case.con ${PROB}/${scenario}/case.json ${PROB}/${scenario}/case.raw 0 600 2 'test'
+    #python3 MyPython2.py ${PROB}/${scenario}/case.con ${PROB}/${scenario}/case.json ${PROB}/${scenario}/case.raw 0  10000 1 'test'
+
+    #\cp knitro.log ${OUTDIR}/${scenario}/
+    #\cp ${scenario}.knitro ${OUTDIR}/${scenario}/
+    #\cp knitro.log ${OUTDIR}/${scenario}/${scenario}.log
+    #\cp kdbg*.log ${OUTDIR}/${scenario}/
+
+    #cd ..
+
+#    set list = $<
+
+end
+
+exit 0
