@@ -180,6 +180,7 @@ def run():
     acn.division = division
     acn.improvedbase = 0
     acn.procid = procid
+    #acn.procid = 5
     alldata['PROCEDURE'] = 'SOLVEAMPL1'
     alldata['PROCEDURE'] = 'HEURBASE1'
     #alldata['PROCEDURE'] = 'COMPUTE_PRIOR_BASE'
@@ -546,13 +547,17 @@ def run():
                   proccnt = 1 # start over
 
     print("Done: procid=",procid," time=",time.time()-timebeg)
-    show_final_base = 0
+    show_final_base = 1
     if procid == 0 and show_final_base:
         pobj, pinfeas, pexist, base.psummary = acn_evaluation2.base_from_file(acn, "solution_BASECASE.txt")
         if (pexist == True):
             print('\n\nFINAL BASE solution: obj=' + str(pobj))
             print('FINAL BASE solution: infeas=' + str(pinfeas))
-
+            pname = "base_sol.log"
+            sol = open(pname,"w")
+            sol.write('\n\nFINAL BASE solution: obj=' + str(pobj)+"\n")
+            sol.write('FINAL BASE solution: infeas=' + str(pinfeas)+"\n")
+            sol.close()
 
     # Writing infeasibility solution (from infeasibility_solution.py) for contingencies
     # We'll fall back on these if necessary

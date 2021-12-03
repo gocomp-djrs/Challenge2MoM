@@ -49,10 +49,10 @@ def acnsolveconthruH2(alldata,acn, log, passnum, ctgcount, ctgidx, conlabel, ctg
  ampl = AMPL()
 
  # Set Knitro as the solver to use
- #ampl.setOption('solver', 'knitroampl')
- ampl.setOption('solver', '/scratch/knitroampl')
+ ampl.setOption('solver', 'knitroampl')
+ #ampl.setOption('solver', '/scratch/knitroampl')
  #ampl.setOption('knitroampl_auxfiles', 'rc') #print variable/constraint names inside knitroampl
- ampl.setOption('TMPDIR','/scratch') # write AMPL temporary files to "/scratch"
+ #ampl.setOption('TMPDIR','/scratch') # write AMPL temporary files to "/scratch"
 
  # Set AMPL presolve tolerance and option
  #ampl.setOption('presolve_eps', 1.0e-8)

@@ -100,10 +100,10 @@ def acnheurbase1sub(acn, procid, passnum):
  ampl = AMPL()
 
  # Set Knitro as the solver to use
- #ampl.setOption('solver', 'knitroampl')
- ampl.setOption('solver', '/scratch/knitroampl')
+ ampl.setOption('solver', 'knitroampl')
+ #ampl.setOption('solver', '/scratch/knitroampl')
  #ampl.setOption('knitroampl_auxfiles', 'rc') #print variable/constraint names inside knitroampl
- ampl.setOption('TMPDIR','/scratch') # write AMPL temporary files to "/scratch"
+ #ampl.setOption('TMPDIR','/scratch') # write AMPL temporary files to "/scratch"
 
  # Set AMPL presolve tolerance and option
  #ampl.setOption('presolve_eps', 1.0e-8)
@@ -1004,18 +1004,18 @@ def acnheurbase1sub(acn, procid, passnum):
      base_options += ' opttol=1.0e-3'
  if (acn.numbuses < 10000):
      base_options += ' bar_maxcrossit=1'
- mip_options = ' mip_heuristic=0 mip_terminate=1 mip_outinterval=1 mip_outlevel=1 mip_debug=1 mip_outsub=2 mip_nodealg=1 mip_intvar_strategy=0'
- if (acn.numbuses < 100):
+ mip_options = ' mip_multistart=1 mip_terminate=0 mip_outinterval=1 mip_outlevel=1 mip_debug=1 mip_outsub=2 mip_nodealg=1 mip_intvar_strategy=0'
+ if (1):
      intvar_strategy = ' mip_intvar_strategy=0'  # handle integer vars directly
  else:
      intvar_strategy = ' mip_intvar_strategy=2'  # convert binary vars to complementarity constraints
  #if (acn.numbuses < 100 or passnum == 2):
- if (acn.numbuses < 100):
+ if (0):
    relax = ' relax=0'
-   log.joint(' using relax = 0 because buses < 100\n')
+   log.joint(' using relax = 0 ...\n')
  else:
    relax = ' relax=1'
-   log.joint(' using relax = 1 because buses >= 100\n')
+   log.joint(' using relax = 1 ...\n')
  options = base_options + muruleopt + mip_options + maxtime + relax + logname + intvar_strategy
  #print "options=",options
  ampl.setOption('knitro_options', options)
