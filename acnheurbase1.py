@@ -115,9 +115,13 @@ def acnheurbase1sub(acn, procid, passnum):
  # Read the model file                                                  #modelDirectory = argv[2] if argc == 3 else os.path.join('..', 'models')
  usealternate = 0
  useexact = 0
+ userelax = 0
  if usealternate == 0:
      if useexact == 0:
-         ampl.read('./constrainedNLP_heur1.mod')
+         if userelax:
+            ampl.read('./constrainedNLP_heur1.mod')
+         else:
+            ampl.read('./base_norelax.mod')
      else:
          ampl.read('./constrainedNLPexact_heur1.mod')
  else:
@@ -1246,19 +1250,19 @@ def acnheurbase1sub(acn, procid, passnum):
  log.joint(' gencost + oncost + sucost + sdcost: %.8e\n' %(sumgenbase + sumgenon + sumgensu + sumgensd))
  '''
 
- relaxPplus0 = numpy.zeros(acn.numbuses)
- v = ampl.getVariable('relaxPplus0')
- df = v.getValues()
- vals = df.toDict()
- for i in range(acn.numbuses):
-    relaxPplus0[i] = vals[i+1]
+ #relaxPplus0 = numpy.zeros(acn.numbuses)
+ #v = ampl.getVariable('relaxPplus0')
+ #df = v.getValues()
+ #vals = df.toDict()
+ #for i in range(acn.numbuses):
+ #   relaxPplus0[i] = vals[i+1]
  #print(relaxPplus0)
- relaxPminus0 = numpy.zeros(acn.numbuses)
- v = ampl.getVariable('relaxPminus0')
- df = v.getValues()
- vals = df.toDict()
- for i in range(acn.numbuses):
-    relaxPminus0[i] = vals[i+1]
+ #relaxPminus0 = numpy.zeros(acn.numbuses)
+ #v = ampl.getVariable('relaxPminus0')
+ #df = v.getValues()
+ #vals = df.toDict()
+ #for i in range(acn.numbuses):
+ #   relaxPminus0[i] = vals[i+1]
  #print(relaxPminus0)
 
  '''
