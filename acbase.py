@@ -50,7 +50,6 @@ def acbase(acn, procid):
  passnum = 1
  stop = 0
  solvenum = 0
- useparallel = 0
  maxsolves = 6
 
  # Create some numpy 2-d arrays for storing solutions for each solve
@@ -81,6 +80,7 @@ def acbase(acn, procid):
  acn.basesol_sw = np.zeros((maxsolves,numxha0), dtype=int)
 
  # BASE SOLVE LOOP BEGIN
+ useparallel = 0
  while stop == 0:
    if useparallel == 0:
      log.joint('---> sequential base solves\n')
@@ -103,6 +103,40 @@ def acbase(acn, procid):
      # Currently fork as many child processes as threads/cores available
      log.joint('---> parallel base solves\n')
      #TBD
+     for i in range(numcores):
+         try:
+             pid = os.fork()
+         except:
+             #print("Could not create a child process")
+             continue
+         if pid == 0:
+             for h in range(maxsolves):
+                 if 1: # may impose condition here later
+                     elapsedtime = time.time()-acn.timebeg
+                     remaintime = acn.maxtime - elapsedtime
+                     needtosolve = 1
+                     modulo = (h+1)%numcores
+                     #if passnum > 2 and numnegscores > 0 and acn.scores[h] >= 0:
+                     #    needtosolve = 0 #if negative scores, focus on improving only these for now
+                     limit = 60.0
+                     #print('i=',i,' modulo
+                     if i==modulo and needtosolve == 1 and remaintime >= limit:
+                         try:
+                             log.joint("Solve base "+str(h)+" with procid "+str(procid)+" core "+str(i)+" remain_time="+str(remaintime)+"\n")
+                             acbasesub(acn, h, passnum)
+                         except:
+                             log.joint("base solve "+str(h)+" encountered a problem inside acbasesub!\n")
+                             #exit()
+                             pass
+             os._exit(os.EX_OK)
+         else:
+             pass
+             #print("In the parent process after forking the child {}".format(pid))
+         #breakexit("loop")
+     #breakexit('parallel contingency loop')
+     for i in range(numcores):
+         finished = os.waitpid(0, 0)
+     stop=1
 
  # BASE SOLVE LOOP FINISHED
 

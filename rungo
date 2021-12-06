@@ -16,6 +16,7 @@
 \rm heur1.txt
 \rm heur1.bin
 \rm priorbase.txt
+\rm knitro*.log
 
 # Set main Problem repository
 set DIR = /Users/rwaltz/go/go2mom/networks
