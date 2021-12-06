@@ -18,12 +18,27 @@ from amplpy import *
 import time
 #import evaluation2
 import acn_evaluation2
+import multiprocessing
 from acn_solution import *
 from acnsolverAMPL import acnexposevars, acnsolveit, resolve_fixed, write_base_files
 
 
 def acbase(acn, procid):
 
+ log = acn.alldata['log']
+ log.joint("\n***\n solving base\n")
+
+ # Get info on cores and set parallelism
+ numcores = multiprocessing.cpu_count()
+ print('numcores=',numcores)
+
+ # use this to suppress stdout in parallel contingency loop
+ nooutput = 0
+ if nooutput:
+     sys.stdout =  open(os.devnull, 'w')
+     sys.stderr =  open(os.devnull, 'w')
+
+ # Initialize
  division = int(acn.division)
  if (division == 2 or division == 4 or (division == 1 and acn.numbuses < 10000) or (division == 3 and acn.numbuses < 10000)):
      if acn.numnodes == 1:
@@ -34,20 +49,32 @@ def acbase(acn, procid):
      max_passes = 1
  passnum = 1
  stop = 0
+ solvenum = 1
+ useparallel = 0
+ maxsolves = 6
 
  while stop == 0:
-     #acn.procid = passnum - 1
-     acbasesub(acn, procid, passnum)
-     #breakexit('passnum')
-     stop = 0
-     passnum += 1
-     elapsedtime = time.time()-acn.timebeg
-     remaintime = acn.maxtime - elapsedtime
-     if remaintime < 30:
-       stop = 1
-     if passnum > max_passes:
-       stop = 1
-     #stop = 0 # use to force stop
+   if useparallel == 0:
+     log.joint('---> sequential base solves\n')
+     # Sequential implementation of base solve loop
+     for h in range(maxsolves):
+         acn.procid = h
+         acbasesub(acn, procid, passnum)
+         #breakexit('passnum')
+         stop = 0
+         passnum += 1
+         elapsedtime = time.time()-acn.timebeg
+         remaintime = acn.maxtime - elapsedtime
+         if remaintime < 30:
+           stop = 1
+         if passnum > max_passes:
+           stop = 1
+         #stop = 0 # use to force stop
+   else:
+     # Parallel implementation of base solve loop using forks
+     # Currently fork as many child processes as threads/cores available
+     log.joint('---> parallel base solves\n')
+     #TBD
 
 def acbasesub(acn, procid, passnum):
 
