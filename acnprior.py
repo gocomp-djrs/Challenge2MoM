@@ -7,6 +7,7 @@ import math
 import cmath
 from myutils import *
 from acnheurbase1 import *
+from acbase import *
 from log import *
 import data
 import numpy as np
@@ -449,7 +450,8 @@ def acncomputepriorbase(alldata):
          #breakexit('foooooo')
          #acnprintgraph(acn, 1)
 
-         acnheurbase1(acn, procid)
+         #acnheurbase1(acn, procid) # Challenge 2 version
+         acbase(acn, procid)
 
  return 0
 

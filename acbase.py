@@ -22,7 +22,7 @@ from acn_solution import *
 from acnsolverAMPL import acnexposevars, acnsolveit, resolve_fixed, write_base_files
 
 
-def acnheurbase1(acn, procid):
+def acbase(acn, procid):
 
  division = int(acn.division)
  if (division == 2 or division == 4 or (division == 1 and acn.numbuses < 10000) or (division == 3 and acn.numbuses < 10000)):
@@ -37,7 +37,7 @@ def acnheurbase1(acn, procid):
 
  while stop == 0:
      #acn.procid = passnum - 1
-     acnheurbase1sub(acn, procid, passnum)
+     acbasesub(acn, procid, passnum)
      #breakexit('passnum')
      stop = 0
      passnum += 1
@@ -49,7 +49,7 @@ def acnheurbase1(acn, procid):
        stop = 1
      #stop = 0 # use to force stop
 
-def acnheurbase1sub(acn, procid, passnum):
+def acbasesub(acn, procid, passnum):
 
  log  = acn.alldata['log']
  log.joint("\n***\n running base solution heuristic 1\n")
