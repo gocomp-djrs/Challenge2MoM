@@ -49,17 +49,45 @@ def acbase(acn, procid):
      max_passes = 1
  passnum = 1
  stop = 0
- solvenum = 1
+ solvenum = 0
  useparallel = 0
  maxsolves = 6
 
+ # Create some numpy 2-d arrays for storing solutions for each solve
+ # The # of rows in each arrays is maxsolves
+ acn.basesol_busVmags = np.zeros((maxsolves,acn.numbuses), dtype=float)
+ acn.basesol_busVangles = np.zeros((maxsolves,acn.numbuses), dtype=float)
+ acn.basesol_clearedloads = np.zeros((maxsolves,acn.numloads+1), dtype=float)
+ acn.basesol_ploads = np.zeros((maxsolves,acn.numloads+1), dtype=float)
+ acn.basesol_genP = np.zeros((maxsolves,acn.numgens), dtype=float)
+ acn.basesol_genQ = np.zeros((maxsolves,acn.numgens), dtype=float)
+ acn.basesol_genON = np.zeros((maxsolves,acn.numgens), dtype=int)
+ acn.basesol_gensu = np.zeros((maxsolves,acn.numgens), dtype=int)
+ acn.basesol_gensd = np.zeros((maxsolves,acn.numgens), dtype=int)
+ acn.basesol_ntrON = np.zeros((maxsolves,acn.nontranscount_original), dtype=int)
+ acn.basesol_trON = np.zeros((maxsolves,acn.transcount_original), dtype=int)
+ acn.basesol_taps = np.zeros((maxsolves,acn.transcount_original), dtype=int)
+ # Get size of basesw so we can create corresponding numpy array
+ numxha0 = 0
+ for h in range(1,1 + acn.numswitchedshunts):
+   oursh = acn.ourswshunts[h]
+   if oursh.status:
+     for a in range(1,1+oursh.len):
+       if oursh.n[a] > 0:
+         numxha0 += 1
+ #print('numxha0=',numxha0)
+ #breakexit('numxha0')
+ acn.numxha0 = numxha0
+ acn.basesol_sw = np.zeros((maxsolves,numxha0), dtype=int)
+
+ # BASE SOLVE LOOP BEGIN
  while stop == 0:
    if useparallel == 0:
      log.joint('---> sequential base solves\n')
      # Sequential implementation of base solve loop
      for h in range(maxsolves):
-         acn.procid = h
-         acbasesub(acn, procid, passnum)
+         solvenum = h
+         acbasesub(acn, solvenum, passnum)
          #breakexit('passnum')
          stop = 0
          passnum += 1
@@ -76,14 +104,93 @@ def acbase(acn, procid):
      log.joint('---> parallel base solves\n')
      #TBD
 
-def acbasesub(acn, procid, passnum):
+ # BASE SOLVE LOOP FINISHED
+
+ if nooutput:
+     sys.stdout = sys.__stdout__
+     sys.stderr = sys.__stderr__
+
+ # Now evaluate all base solutions and return the best one
+ for solvenum in range(maxsolves):
+     basefilename = "base_" + str(solvenum) + ".txt"
+     try:
+         pobj = -1e20
+         log.joint("\nEvaluating base_*.txt...\n")
+         base.obj, base.infeas, exist, base.summary = acn_evaluation2.base_from_file(acn, basefilename)
+         log.joint("\nEvaluating solution_BASECASE.txt...\n")
+         pobj, pinfeas, pexist, base.psummary = acn_evaluation2.base_from_file(acn, "solution_BASECASE.txt")
+         log.joint("\n------------------------------------------\n")
+         if (pexist == True):
+             log.joint('current solution: obj=' + str(pobj)+'\n')
+             log.joint('current solution: infeas=' + str(pinfeas)+'\n')
+         log.joint('base exists=' +  str(exist)+'\n')
+         log.joint('solution_BASECASE exists=' +  str(pexist)+'\n')
+         if (exist == True):
+             log.joint('base.obj=' + str(base.obj)+'\n')
+             log.joint('base.infeas=' + str(base.infeas)+'\n')
+             if base.infeas == 0 and (pexist == False or base.obj > pobj):
+                 log.joint('We found a base solution ' +str(solvenum)+' better than current solution.\n')
+                 # We've computed a base case solution that is better than the
+                 # current best solution, so overwrite with this one
+                 # TBD: BETTER WAY TO HANDLE THIS COPY!
+                 if solvenum==0:
+                   os.popen('\cp base_0.txt solution_BASECASE.txt')
+                   os.popen('\cp base_0.bin solution_BASECASE.bin')
+                 elif solvenum==1:
+                   os.popen('\cp base_1.txt solution_BASECASE.txt')
+                   os.popen('\cp base_1.bin solution_BASECASE.bin')
+                 elif solvenum==2:
+                   os.popen('\cp base_2.txt solution_BASECASE.txt')
+                   os.popen('\cp base_2.bin solution_BASECASE.bin')
+                 elif solvenum==3:
+                   os.popen('\cp base_3.txt solution_BASECASE.txt')
+                   os.popen('\cp base_3.bin solution_BASECASE.bin')
+                 elif solvenum==4:
+                   os.popen('\cp base_4.txt solution_BASECASE.txt')
+                   os.popen('\cp base_4.bin solution_BASECASE.bin')
+                 elif solvenum==5:
+                   os.popen('\cp base_5.txt solution_BASECASE.txt')
+                   os.popen('\cp base_5.bin solution_BASECASE.bin')
+                 # Now write out individual base solution components
+                 # needed for contingency modeling to files so that they can be read in by
+                 # MyPython2.py->acnsolverAMPL2.py
+                 acn.basebusVmags = acn.basesol_busVmags[solvenum,:]
+                 acn.basebusVangles = acn.basesol_busVangles[solvenum,:]
+                 acn.clearedloads = acn.basesol_clearedloads[solvenum,:]
+                 acn.ploads = acn.basesol_ploads[solvenum,:]
+                 acn.basegenP = acn.basesol_genP[solvenum,:]
+                 acn.basegenQ = acn.basesol_genQ[solvenum,:]
+                 acn.basegenON = acn.basesol_genON[solvenum,:]
+                 acn.basegensu = acn.basesol_gensu[solvenum,:]
+                 acn.basegensd = acn.basesol_gensd[solvenum,:]
+                 acn.basentrON = acn.basesol_ntrON[solvenum,:]
+                 acn.basetrON = acn.basesol_trON[solvenum,:]
+                 acn.basetaps = acn.basesol_taps[solvenum,:]
+                 #print('basesw0=',acn.basesw0)
+                 j = 0
+                 acn.basesw={}
+                 for (h,a) in acn.basesw0:
+                   acn.basesw[h,a] = acn.basesol_sw[solvenum,j]
+                   j=j+1
+                 #print('basesw=',basesw)
+                 #breakexit('zzz')
+                 write_base_files(acn,acn.basebusVmags,acn.basebusVangles,acn.ploads,acn.basegenP,acn.basegenON,acn.basegensu,acn.basegensd,acn.basentrON,acn.basetrON,acn.basesw)
+                 acn.improvedbase = 1
+     except:
+         log.joint("Error evaluating the base solution!\n")
+         var = traceback.format_exc()
+         traceback.print_exc()
+         acn_evaluation2.print_alert(var, raise_exception=False)
+         pass
+
+def acbasesub(acn, solvenum, passnum):
 
  log  = acn.alldata['log']
  log.joint("\n***\n running base solution heuristic 1\n")
 
  division = int(acn.division)
 
- print("*** procid: ", procid, " pass: ",passnum, " division=",division)
+ print("*** solvenum: ", solvenum, " pass: ",passnum, " division=",division)
  #breakexit("pass")
 
  heatmap = acn.heatmap
@@ -409,7 +516,7 @@ def acbasesub(acn, procid, passnum):
  ntrstatAMPL = ampl.getParameter('ntrstat')
  for i in range(1,1+acn.nontranscount_original):
   #if (division == 3 and acn.numbuses < 10000 and passnum == 1) or (division == 4 and passnum == 1):
-  if (division == 3 and acn.procid > 2) or (division == 4 and acn.procid > 2):
+  if (division == 3 and solvenum > 2) or (division == 4 and solvenum > 2):
     ntrqualswVals[i] = acn.ournontrans[i].swqual
   else:
     ntrqualswVals[i] = 0
@@ -434,7 +541,7 @@ def acbasesub(acn, procid, passnum):
      trratingorigAMPL = ampl.getParameter('trrating_original')
  for i in range(1,1+acn.transcount_original):
   #if (division == 3 and acn.numbuses < 10000 and passnum == 1) or (division == 4 and passnum == 1):
-  if (division == 3 and acn.procid > 2) or (division == 4 and acn.procid > 2):
+  if (division == 3 and solvenum > 2) or (division == 4 and solvenum > 2):
     trqualswVals[i] = acn.ourtrans[i].swqual
   else:
     trqualswVals[i] = 0
@@ -859,9 +966,9 @@ def acbasesub(acn, procid, passnum):
   if forcefixing:
    keeploose = 0
 
-  if acn.procid > 2 and division <= 2:
+  if solvenum > 2 and division <= 2:
    keeploose = 1
-  #print("procid=",acn.procid," division=",division)
+  #print("solvenum=",solvenum," division=",division)
   #breakexit("hhhhh")
 
   if keeploose > 0:
@@ -1021,11 +1128,11 @@ def acbasesub(acn, procid, passnum):
  #timelimit = min(remaintime,acn.maxtime-75)
  timelimit = min(remaintime-35,acn.maxtime-75)
  timelimit = max(timelimit, 0.001)
- if acn.procid <= 2 or division > 2 or 1:
+ if solvenum <= 2 or division > 2 or 1:
      muruleopt = ' bar_murule=0'  #pred-corr
  else:
      muruleopt = ' bar_murule=1'  #monotone
- logname = ' outname='+'"'+'knitro'+str(acn.procid)+'.log'+'"'
+ logname = ' outname='+'"'+'knitro'+str(solvenum)+'.log'+'"'
  maxtime = ' maxtime_real=' + str(timelimit) + ' mip_maxtime_real=' + str(timelimit) + ' ms_maxtime_real=' + str(timelimit) # just in case we use multi-start
  #maxtime = ' maxtime_real=600 '
  base_options = 'outlev=4 outmode=2 debug=0 presolve_tol=0.5 linsolver=6 feastol=1e-5 ftol=1e-3 scale=0 honorbnds=0 cg_maxit=1 bar_refinement=1 bar_switchrule=0 bar_feasible=1 restarts=3 restarts_maxit=1000 maxit=30000'  # use bar_initpt=2 bar_directinterval=0 ?
@@ -1058,18 +1165,18 @@ def acbasesub(acn, procid, passnum):
  if usescript:
 
   try:
-      if procid == 0 or procid == 3:
+      if solvenum == 0 or solvenum == 3:
          if passnum == 1:
-           log.joint(' !!! procid=0/3, fixed solve (solve_script)\n')
+           log.joint(' !!! solvenum=0/3, fixed solve (solve_script)\n')
            ampl.eval('include solve_script;')
          else: #passnum=2
-           log.joint(' !!! procid=0/3, unfixed solve (solve_script12)\n')
+           log.joint(' !!! solvenum=0/3, unfixed solve (solve_script12)\n')
            ampl.eval('include solve_script12;')
-      elif procid == 1 or procid == 4:
-         log.joint(' !!! procid=1/4, fixed swsh solve (solve_script11)\n')
+      elif solvenum == 1 or solvenum == 4:
+         log.joint(' !!! solvenum=1/4, fixed swsh solve (solve_script11)\n')
          ampl.eval('include solve_script11;')
-      elif procid == 2 or procid == 5:
-         log.joint(' !!! procid=2/5, unfixed solve (solve_script12)\n')
+      elif solvenum == 2 or solvenum == 5:
+         log.joint(' !!! solvenum=2/5, unfixed solve (solve_script12)\n')
          ampl.eval('include solve_script12;')
       else:
          ampl.eval('include solve_script;')
@@ -1383,6 +1490,7 @@ def acbasesub(acn, procid, passnum):
 
  log.joint('Retrieve xha0: numxha0 = %d (%d)\n' %(numxha0, acn.numswitchedshunts))
  basesw={}
+ j=0
  if numxha0 > 0:
     v = ampl.getVariable('xha0')
     df = v.getValues()
@@ -1390,6 +1498,11 @@ def acbasesub(acn, procid, passnum):
     for (h,a), step in vals.items():
       #print(h,a,step)
       basesw[h,a] = int(step)
+      acn.basesol_sw[solvenum,j] = int(step)
+      j=j+1
+    #lsw = len(basesw)
+    #print('lsw=',lsw,' numxha0=',numxha0)
+    #print('basesw=',basesw)
     #breakexit("sw")
 
  elapsedtime = time.time()-acn.timebeg
@@ -1397,141 +1510,28 @@ def acbasesub(acn, procid, passnum):
  print('Before sol eval: remain time = ',remaintime)
 
  # Create base case solution data structure and file
- heurfilename = "heur1_" + str(procid) + ".txt"
- heurfilename_noext = "heur1_" + str(procid)
+ heurfilename = "base_" + str(solvenum) + ".txt"
+ heurfilename_noext = "base_" + str(solvenum)
  log.joint("Write base case solution\n")
  s1 = acnSolver()
  s1.data.read(raw, sup, con)
  s1.write_sol_base_only('.',heurfilename_noext,acn,basebusVmags,basebusVangles,clearedloads,basegenP,basegenQ,basegenON,basentrON,basetrON,basetaps,basesw)
+ acn.basesol_busVmags[solvenum,:] = basebusVmags[:]
+ acn.basesol_busVangles[solvenum,:] = basebusVangles[:]
+ acn.basesol_clearedloads[solvenum,:] = clearedloads[:]
+ acn.basesol_ploads[solvenum,:] = ploads[:]
+ acn.basesol_genP[solvenum,:] = basegenP[:]
+ acn.basesol_genQ[solvenum,:] = basegenQ[:]
+ acn.basesol_genON[solvenum,:] = basegenON[:]
+ acn.basesol_gensu[solvenum,:] = basegensu[:]
+ acn.basesol_gensd[solvenum,:] = basegensd[:]
+ acn.basesol_ntrON[solvenum,:] = basentrON[:]
+ acn.basesol_trON[solvenum,:] = basetrON[:]
+ acn.basesol_taps[solvenum,:] = basetaps[:]
+ #acn.basesol_sw filled in above; store the initial one
+ if solvenum == 0:
+   acn.basesw0 = basesw
 
- if procid > 0:
-   # store solution temporarily
-   if procid == 1:
-     acn.basebusVmags1 = basebusVmags
-     acn.basebusVangles1 = basebusVangles
-     acn.clearedloads1 = clearedloads
-     acn.basegenP1 = basegenP
-     acn.basegenQ1 = basegenQ
-     acn.basegenON1 = basegenON
-     acn.basentrON1 = basentrON
-     acn.basetrON1 = basetrON
-     acn.basetaps1 = basetaps
-     acn.basesw1 = basesw
-     acn.baseploads1 = ploads
-     acn.basegensu1 = basegensu
-     acn.basegensd1 = basegensd
-   elif procid == 2:
-     acn.basebusVmags2 = basebusVmags
-     acn.basebusVangles2 = basebusVangles
-     acn.clearedloads2 = clearedloads
-     acn.basegenP2 = basegenP
-     acn.basegenQ2 = basegenQ
-     acn.basegenON2 = basegenON
-     acn.basentrON2 = basentrON
-     acn.basetrON2 = basetrON
-     acn.basetaps2 = basetaps
-     acn.basesw2 = basesw
-     acn.baseploads2 = ploads
-     acn.basegensu2 = basegensu
-     acn.basegensd2 = basegensd
-   elif procid == 3:
-     acn.basebusVmags3 = basebusVmags
-     acn.basebusVangles3 = basebusVangles
-     acn.clearedloads3 = clearedloads
-     acn.basegenP3 = basegenP
-     acn.basegenQ3 = basegenQ
-     acn.basegenON3 = basegenON
-     acn.basentrON3 = basentrON
-     acn.basetrON3 = basetrON
-     acn.basetaps3 = basetaps
-     acn.basesw3 = basesw
-     acn.baseploads3 = ploads
-     acn.basegensu3 = basegensu
-     acn.basegensd3 = basegensd
-   elif procid == 4:
-     acn.basebusVmags4 = basebusVmags
-     acn.basebusVangles4 = basebusVangles
-     acn.clearedloads4 = clearedloads
-     acn.basegenP4 = basegenP
-     acn.basegenQ4 = basegenQ
-     acn.basegenON4 = basegenON
-     acn.basentrON4 = basentrON
-     acn.basetrON4 = basetrON
-     acn.basetaps4 = basetaps
-     acn.basesw4 = basesw
-     acn.baseploads4 = ploads
-     acn.basegensu4 = basegensu
-     acn.basegensd4 = basegensd
-   else:  #procid == 5
-     acn.basebusVmags5 = basebusVmags
-     acn.basebusVangles5 = basebusVangles
-     acn.clearedloads5 = clearedloads
-     acn.basegenP5 = basegenP
-     acn.basegenQ5 = basegenQ
-     acn.basegenON5 = basegenON
-     acn.basentrON5 = basentrON
-     acn.basetrON5 = basetrON
-     acn.basetaps5 = basetaps
-     acn.basesw5 = basesw
-     acn.baseploads5 = ploads
-     acn.basegensu5 = basegensu
-     acn.basegensd5 = basegensd
-   elapsedtime = time.time()-acn.timebeg
-   remaintime = acn.maxtime - elapsedtime
-   print('After sol eval: remain time = ',remaintime)
-   return
-
- try:
-  pobj = -1e20
-  log.joint("\nEvaluating heur1_*.txt...\n")
-  base.obj, base.infeas, exist, base.summary = acn_evaluation2.base_from_file(acn, heurfilename)
-  log.joint("\nEvaluating solution_BASECASE.txt...\n")
-  pobj, pinfeas, pexist, base.psummary = acn_evaluation2.base_from_file(acn, "solution_BASECASE.txt")
-  log.joint("\n------------------------------------------\n")
-  if (pexist == True):
-    if passnum == 1:
-       log.joint('infeasible solution: obj=' + str(pobj)+'\n')
-       log.joint('infeasible solution: infeas=' + str(pinfeas)+'\n')
-    else:
-       log.joint('current solution: obj=' + str(pobj)+'\n')
-       log.joint('current solution: infeas=' + str(pinfeas)+'\n')
-  log.joint('heur1 exists=' +  str(exist)+'\n')
-  log.joint('solution_BASECASE exists=' +  str(pexist)+'\n')
-  if (exist == True):
-    log.joint('base.obj=' + str(base.obj)+'\n')
-    log.joint('base.infeas=' + str(base.infeas)+'\n')
-    if procid == 0 and base.infeas == 0 and (pexist == False or base.obj > pobj):
-        log.joint('We found a base solution better than infeasible solution.')
-        # We've computed a base case solution that is better than the
-        # 'infeasible_solution', so overwrite with this one
-        os.popen('\cp heur1_0.txt solution_BASECASE.txt')
-        os.popen('\cp heur1_0.bin solution_BASECASE.bin')
-        # Now write out individual base solution components
-        # needed for contingency modeling to files so that they can be read in by
-        # MyPython2.py->acnsolverAMPL2.py
-        write_base_files(acn, basebusVmags,basebusVangles,ploads,basegenP,basegenON,basegensu,basegensd,basentrON,basetrON, basesw)
-        acn.improvedbase = 1
-        acn.basebusVmags = basebusVmags
-        acn.basebusVangles = basebusVangles
-        acn.clearedloads = clearedloads
-        acn.basegenP = basegenP
-        acn.basegenQ = basegenQ
-        acn.basegenON = basegenON
-        acn.basentrON = basentrON
-        acn.basetrON = basetrON
-        acn.basetaps = basetaps
-        acn.basesw = basesw
-
- except:
-  log.joint("Error evaluating the base solution!\n")
-  var = traceback.format_exc()
-  traceback.print_exc()
-  acn_evaluation2.print_alert(var, raise_exception=False)
-  pass
-
- elapsedtime = time.time()-acn.timebeg
- remaintime = acn.maxtime - elapsedtime
- print('After sol eval: remain time = ',remaintime)
 
 #############
 
