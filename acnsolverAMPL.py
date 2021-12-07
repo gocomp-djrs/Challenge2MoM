@@ -849,7 +849,7 @@ def acnsolverAMPL(alldata):
 
  # Re-solve with integer vars fixed
 
- resolve_fixed(acn, ampl, usescript)
+ resolve_fixed(acn, ampl, usescript, 1)
 
  # Finished solve phase
 
@@ -1192,7 +1192,7 @@ def acnsolverAMPL(alldata):
 ##### Called after initial solve to fix all integer variables and re-solve
 #Maybe put this in a different file?
 
-def resolve_fixed(acn, ampl, usescript):
+def resolve_fixed(acn, ampl, usescript, solvenum, userelax):
 
   log = acn.log
   log.joint('running resolve_fixed: usescript=%d\n' %(usescript))
@@ -1330,7 +1330,7 @@ def resolve_fixed(acn, ampl, usescript):
   try:
     elapsedtime = time.time()-acn.timebeg
     remaintime = acn.maxtime - elapsedtime
-    logname = ' outname='+'"'+'knitro-fixed'+str(acn.procid)+'.log'+'"'
+    logname = ' outname='+'"'+'knitro-fixed'+str(solvenum)+'.log'+'"'
     #print(logname)
     maxtime = ' maxtime_real=' + str(remaintime) + ' mip_maxtime_real=' + str(remaintime) + ' ms_maxtime_real=' + str(remaintime) # just in case we use multi-start
     resolve_options = 'outlev=4 outmode=2 debug=0 feastol=1e-5 feastol_abs=9e-5 ftol=1e-6 scale=0 honorbnds=0 cg_maxit=50 bar_murule=0 bar_feasible=0 bar_refinement=1 bar_initpi_mpec=0.0 maxit=3000 alg=1 strat_warm_start=1 bar_initpt=2 bar_initmu=1e-6 bar_slackboundpush=1e-6 infeastol=1e-5 presolve=1 presolve_tol=0.5 presolve_initpt=1'
@@ -1363,15 +1363,16 @@ def resolve_fixed(acn, ampl, usescript):
 
     totalgencostvar = ampl.getVariable('totalgencost')
     totalgencost = totalgencostvar.value()
-    totalbuscostvar = ampl.getVariable('totalbuscost')
-    totalbuscost = totalbuscostvar.value()
-    log.joint('     totalgencost %.4e, totalbuscost %.4e\n' %(totalgencost, totalbuscost))
-    totalbusPcostvar = ampl.getVariable('totalbusPcost0')
-    totalbusPcost = totalbusPcostvar.value()
-    totalbusQcostvar = ampl.getVariable('totalbusQcost0')
-    totalbusQcost = totalbusQcostvar.value()
-    log.joint('     totalbusPcost %.4e\n' %(totalbusPcost))
-    log.joint('     totalbusQcost %.4e\n' %(totalbusQcost))
+    if userelax:
+        totalbuscostvar = ampl.getVariable('totalbuscost')
+        totalbuscost = totalbuscostvar.value()
+        log.joint('     totalgencost %.4e, totalbuscost %.4e\n' %(totalgencost, totalbuscost))
+        totalbusPcostvar = ampl.getVariable('totalbusPcost0')
+        totalbusPcost = totalbusPcostvar.value()
+        totalbusQcostvar = ampl.getVariable('totalbusQcost0')
+        totalbusQcost = totalbusQcostvar.value()
+        log.joint('     totalbusPcost %.4e\n' %(totalbusPcost))
+        log.joint('     totalbusQcost %.4e\n' %(totalbusQcost))
   except:
     log.joint("Error in fixed re-solve!\n")
     pass

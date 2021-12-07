@@ -1259,7 +1259,7 @@ def acbasesub(acn, solvenum, passnum):
  log.joint('Before solve 2: remain time = ' + str(remaintime) + ' elapsed time= ' + str(elapsedtime) +'\n')
  if remaintime > 30:
      ampl.setOption('presolve_eps', 1.0e-6)
-     resolve_fixed(acn, ampl, usescript)
+     resolve_fixed(acn, ampl, usescript, solvenum, userelax)
 
  #amplstate = 'display binxstf0, xstf0, gf0, bf0;'
  #filename = 'finalstructure.out'
