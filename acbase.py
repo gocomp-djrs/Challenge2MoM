@@ -78,9 +78,10 @@ def acbase(acn, procid):
  #breakexit('numxha0')
  acn.numxha0 = numxha0
  acn.basesol_sw = np.zeros((maxsolves,numxha0), dtype=int)
+ acn.basesw0={}
 
  # BASE SOLVE LOOP BEGIN
- useparallel = 0
+ useparallel = 1
  while stop == 0:
    if useparallel == 0:
      log.joint('---> sequential base solves\n')
@@ -111,6 +112,7 @@ def acbase(acn, procid):
              continue
          if pid == 0:
              for h in range(maxsolves):
+                 solvenum = h
                  if 1: # may impose condition here later
                      elapsedtime = time.time()-acn.timebeg
                      remaintime = acn.maxtime - elapsedtime
@@ -123,7 +125,7 @@ def acbase(acn, procid):
                      if i==modulo and needtosolve == 1 and remaintime >= limit:
                          try:
                              log.joint("Solve base "+str(h)+" with procid "+str(procid)+" core "+str(i)+" remain_time="+str(remaintime)+"\n")
-                             acbasesub(acn, h, passnum)
+                             acbasesub(acn, solvenum, passnum)
                          except:
                              log.joint("base solve "+str(h)+" encountered a problem inside acbasesub!\n")
                              #exit()
@@ -136,7 +138,10 @@ def acbase(acn, procid):
      #breakexit('parallel contingency loop')
      for i in range(numcores):
          finished = os.waitpid(0, 0)
-     stop=1
+     #stop=1
+
+   # Decide whether to make another pass
+   stop=1
 
  # BASE SOLVE LOOP FINISHED
 
@@ -225,6 +230,7 @@ def acbasesub(acn, solvenum, passnum):
  division = int(acn.division)
 
  print("*** solvenum: ", solvenum, " pass: ",passnum, " division=",division)
+ log.joint("*** solvenum: %d, pass: %d division: %d\n" %(solvenum,passnum,division))
  #breakexit("pass")
 
  heatmap = acn.heatmap
@@ -280,11 +286,13 @@ def acbasesub(acn, solvenum, passnum):
  #ampl.setOption('presolve', 0)
  #ampl.setOption('solver_msg', 0)
 
+ ampl.eval('reset;')
+
  #breakexit('premodel')
  # Read the model file                                                  #modelDirectory = argv[2] if argc == 3 else os.path.join('..', 'models')
  usealternate = 0
  useexact = 0
- userelax = 0
+ userelax = 1
  if usealternate == 0:
      if useexact == 0:
          if userelax:
@@ -1002,6 +1010,7 @@ def acbasesub(acn, solvenum, passnum):
 
   if solvenum > 2 and division <= 2:
    keeploose = 1
+   log.joint("solvenum=" + str(solvenum) + " -- keeploose=1 for taps!\n")
   #print("solvenum=",solvenum," division=",division)
   #breakexit("hhhhh")
 
@@ -1147,13 +1156,20 @@ def acbasesub(acn, solvenum, passnum):
  log.joint('fixed %d switchable shunt variables\n' %(numfixedxha0))
  #breakexit('done fixing')
 
- #amplstate = 'expand; display {j in 1.._nvars} (_varname[j],_var[j].lb0,_var[j].\
-#lb,_var[j].ub,_var[j].ub0);'     #shows full model
- #filename = 'heur1model.out'
- #modelout = ampl.getOutput(amplstate)
- #outfile = open(filename,"w")
- #outfile.write("model = " + str(modelout) + "\n")
- #outfile.close()
+ if solvenum == 3 and 0:
+   amplstate = 'expand; display {j in 1.._nvars} (_varname[j],_var[j].lb0,_var[j].lb,_var[j].ub,_var[j].ub0);'     #shows full model
+   filename = 'heur1model.out'
+   modelout = ampl.getOutput(amplstate)
+   outfile = open(filename,"w")
+   outfile.write("model = " + str(modelout) + "\n")
+   outfile.close()
+   # wite some values after AMPL presolve
+   pamplstate = 'display {j in 1.._snvars} (_svarname[j],_svar[j].lb0,_svar[j].lb,_svar[j].ub,_svar[j].ub0);'     #shows full model
+   pfilename = 'heur1premodel.out'
+   pmodelout = ampl.getOutput(pamplstate)
+   poutfile = open(pfilename,"w")
+   poutfile.write("model = " + str(pmodelout) + "\n")
+   poutfile.close()
 
  # Set Knitro options
  elapsedtime = time.time()-acn.timebeg
@@ -1169,7 +1185,7 @@ def acbasesub(acn, solvenum, passnum):
  logname = ' outname='+'"'+'knitro'+str(solvenum)+'.log'+'"'
  maxtime = ' maxtime_real=' + str(timelimit) + ' mip_maxtime_real=' + str(timelimit) + ' ms_maxtime_real=' + str(timelimit) # just in case we use multi-start
  #maxtime = ' maxtime_real=600 '
- base_options = 'outlev=4 outmode=2 debug=0 presolve_tol=0.5 linsolver=6 feastol=1e-5 ftol=1e-3 scale=0 honorbnds=0 cg_maxit=1 bar_refinement=1 bar_switchrule=0 bar_feasible=1 restarts=3 restarts_maxit=1000 maxit=30000'  # use bar_initpt=2 bar_directinterval=0 ?
+ base_options = 'outlev=4 outmode=2 debug=0 presolve_tol=0.5 linsolver=6 par_numthreads=1 feastol=1e-5 ftol=1e-3 scale=0 honorbnds=0 cg_maxit=1 bar_refinement=1 bar_switchrule=0 bar_feasible=1 restarts=3 restarts_maxit=1000 maxit=30000'  # use bar_initpt=2 bar_directinterval=0 ?
  just_feasible = 1 #ignoring optimality works quite well
  if just_feasible:
      base_options += ' opttol=1.0e30 opttol_abs=1e30'
@@ -1565,7 +1581,7 @@ def acbasesub(acn, solvenum, passnum):
  #acn.basesol_sw filled in above; store the initial one
  if solvenum == 0:
    acn.basesw0 = basesw
-
+   #breakexit('basesw0')
 
 #############
 

@@ -801,7 +801,7 @@ def acnsolverAMPL(alldata):
  # Set Knitro options
  maxtime = ' maxtime_real=' + str(acn.maxtime) + ' mip_maxtime_real=' + str(acn.maxtime) + ' ms_maxtime_real=' + str(acn.maxtime) # just in case we use multi-start
  #maxtime = ' maxtime_real=600 '
- base_options = 'outlev=4 outmode=0 debug=0 linsolver=6 feastol=1e-5 ftol=1e-3 scale=0 honorbnds=1 cg_maxit=1 bar_murule=1 bar_refinement=1 bar_switchrule=0 bar_feasible=1 restarts=3 restarts_maxit=1000 maxit=30000'  # use bar_initpt=2 bar_directinterval=0 ?
+ base_options = 'outlev=4 outmode=0 debug=0 linsolver=6 par_numthreads=1 feastol=1e-5 ftol=1e-3 scale=0 honorbnds=1 cg_maxit=1 bar_murule=1 bar_refinement=1 bar_switchrule=0 bar_feasible=1 restarts=3 restarts_maxit=1000 maxit=30000'  # use bar_initpt=2 bar_directinterval=0 ?
  just_feasible = 1 #ignoring optimality works quite well
  if just_feasible:
      base_options += ' opttol=1.0e30 opttol_abs=1e30'
