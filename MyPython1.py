@@ -555,8 +555,9 @@ def run():
             print('FINAL BASE solution: infeas=' + str(pinfeas))
             pname = "base_sol.log"
             sol = open(pname,"w")
-            sol.write('\n\nFINAL BASE solution: obj=' + str(pobj)+"\n")
-            sol.write('FINAL BASE solution: infeas=' + str(pinfeas)+"\n")
+            sol.write('FINAL BASE solution: obj= ' + str(pobj)+"\n")
+            sol.write('FINAL BASE solution: infeas= ' + str(pinfeas)+"\n")
+            sol.write('FINAL BASE solution: solvenum= ' + str(acn.best)+"\n")
             sol.close()
 
     # Writing infeasibility solution (from infeasibility_solution.py) for contingencies

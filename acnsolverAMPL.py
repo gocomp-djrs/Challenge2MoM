@@ -1330,6 +1330,7 @@ def resolve_fixed(acn, ampl, usescript, solvenum, userelax):
   try:
     elapsedtime = time.time()-acn.timebeg
     remaintime = acn.maxtime - elapsedtime
+    remaintime = 600
     logname = ' outname='+'"'+'knitro-fixed'+str(solvenum)+'.log'+'"'
     #print(logname)
     maxtime = ' maxtime_real=' + str(remaintime) + ' mip_maxtime_real=' + str(remaintime) + ' ms_maxtime_real=' + str(remaintime) # just in case we use multi-start

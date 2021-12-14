@@ -45,6 +45,7 @@ def acbase(acn, procid):
  stop = 0
  solvenum = 0
  maxsolves = 12
+ acn.best = -1
 
  # Create some numpy 2-d arrays for storing solutions for each solve
  # The # of rows in each arrays is maxsolves
@@ -246,6 +247,8 @@ def acbase(acn, procid):
          traceback.print_exc()
          acn_evaluation2.print_alert(var, raise_exception=False)
          pass
+
+ acn.best = best
  log.joint("\n\nBEST base solution found by solvenum: " + str(best) + "\n")
 
 def acbasesub(acn, solvenum, passnum):
@@ -1043,7 +1046,7 @@ def acbasesub(acn, solvenum, passnum):
 
   #print("solvenum=",solvenum," division=",division)
   #breakexit("hhhhh")
-  log.joint("solvenum=" + str(solvenum) + " -- keeploose=" + str(keeploose) +" for taps!\n")
+  #log.joint("solvenum=" + str(solvenum) + " -- keeploose=" + str(keeploose) +" for taps!\n")
 
   if keeploose > 0:
       heurmaxxstfVals[cnt1] = acn.ourtrans[cnt1].maxxstf
