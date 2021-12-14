@@ -634,7 +634,7 @@ def twoknap(log, ampl, Asize, binitpu, bvector, nvector, problemindex):
     #outfile.write("model = " + str(modelout) + "\n")
     #outfile.close()
 
-    maxtime = ' maxtime_real=600 '
+    maxtime = ' maxtime_real=600 mip_maxtime_real=600 ms_maxtime_real=600 '
     base_options = 'outlev=0 outmode=0 debug=0 linsolver=6 feastol=1e-5 ftol=1e-3 scale=0 honorbnds=1 cg_maxit=1 bar_murule=1 bar_refinement=1 bar_maxcrossit=1 bar_switchrule=0 bar_feasible=1 restarts=3 maxit=3000'
     #mip_options = ' mip_heuristic=0 mip_terminate=1 mip_outinterval=1 mip_outlevel=0 mip_debug=0 mip_outsub=0 mip_nodealg=1 mip_intvar_strategy=0'
     mip_options = ' mip_heuristic=0 mip_integral_gap_rel=1e-4 mip_outinterval=1 mip_outlevel=0 mip_debug=0 mip_outsub=0 mip_intvar_strategy=0'

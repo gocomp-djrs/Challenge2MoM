@@ -40,17 +40,11 @@ def acbase(acn, procid):
 
  # Initialize
  division = int(acn.division)
- if (division == 2 or division == 4 or (division == 1 and acn.numbuses < 10000) or (division == 3 and acn.numbuses < 10000)):
-     if acn.numnodes == 1:
-        max_passes = 1 # 2
-     else:
-        max_passes = 1
- else:
-     max_passes = 1
+ max_passes = 1
  passnum = 1
  stop = 0
  solvenum = 0
- maxsolves = 6
+ maxsolves = 12
 
  # Create some numpy 2-d arrays for storing solutions for each solve
  # The # of rows in each arrays is maxsolves
@@ -150,6 +144,7 @@ def acbase(acn, procid):
      sys.stderr = sys.__stderr__
 
  # Now evaluate all base solutions and return the best one
+ best = -1
  for solvenum in range(maxsolves):
      basefilename = "base_" + str(solvenum) + ".txt"
      try:
@@ -173,23 +168,53 @@ def acbase(acn, procid):
                  # current best solution, so overwrite with this one
                  # TBD: BETTER WAY TO HANDLE THIS COPY!
                  if solvenum==0:
+                   best = 0
                    os.popen('\cp base_0.txt solution_BASECASE.txt')
                    os.popen('\cp base_0.bin solution_BASECASE.bin')
                  elif solvenum==1:
+                   best = 1
                    os.popen('\cp base_1.txt solution_BASECASE.txt')
                    os.popen('\cp base_1.bin solution_BASECASE.bin')
                  elif solvenum==2:
+                   best = 2
                    os.popen('\cp base_2.txt solution_BASECASE.txt')
                    os.popen('\cp base_2.bin solution_BASECASE.bin')
                  elif solvenum==3:
+                   best = 3
                    os.popen('\cp base_3.txt solution_BASECASE.txt')
                    os.popen('\cp base_3.bin solution_BASECASE.bin')
                  elif solvenum==4:
+                   best = 4
                    os.popen('\cp base_4.txt solution_BASECASE.txt')
                    os.popen('\cp base_4.bin solution_BASECASE.bin')
                  elif solvenum==5:
+                   best = 5
                    os.popen('\cp base_5.txt solution_BASECASE.txt')
                    os.popen('\cp base_5.bin solution_BASECASE.bin')
+                 elif solvenum==6:
+                   best = 6
+                   os.popen('\cp base_6.txt solution_BASECASE.txt')
+                   os.popen('\cp base_6.bin solution_BASECASE.bin')
+                 elif solvenum==7:
+                   best = 7
+                   os.popen('\cp base_7.txt solution_BASECASE.txt')
+                   os.popen('\cp base_7.bin solution_BASECASE.bin')
+                 elif solvenum==8:
+                   best = 8
+                   os.popen('\cp base_8.txt solution_BASECASE.txt')
+                   os.popen('\cp base_8.bin solution_BASECASE.bin')
+                 elif solvenum==9:
+                   best = 9
+                   os.popen('\cp base_9.txt solution_BASECASE.txt')
+                   os.popen('\cp base_9.bin solution_BASECASE.bin')
+                 elif solvenum==10:
+                   best = 10
+                   os.popen('\cp base_10.txt solution_BASECASE.txt')
+                   os.popen('\cp base_10.bin solution_BASECASE.bin')
+                 elif solvenum==11:
+                   best = 11
+                   os.popen('\cp base_11.txt solution_BASECASE.txt')
+                   os.popen('\cp base_11.bin solution_BASECASE.bin')
                  # Now write out individual base solution components
                  # needed for contingency modeling to files so that they can be read in by
                  # MyPython2.py->acnsolverAMPL2.py
@@ -221,6 +246,7 @@ def acbase(acn, procid):
          traceback.print_exc()
          acn_evaluation2.print_alert(var, raise_exception=False)
          pass
+ log.joint("\n\nBEST base solution found by solvenum: " + str(best) + "\n")
 
 def acbasesub(acn, solvenum, passnum):
 
@@ -550,6 +576,12 @@ def acbasesub(acn, solvenum, passnum):
  ntrpAMPL.setValues(ntrpVals)
  ntrratingAMPL.setValues(ntrratingVals)
 
+ # Specify solves that enable line switching
+ if (solvenum >= 3 and solvenum <=5) or (solvenum >= 9 and solvenum <= 11):
+   allowswitch = 1
+ else:
+   allowswitch = 0
+
  ntrqualswVals={}
  ntrcostswVals={}
  ntrstatVals={}
@@ -557,8 +589,7 @@ def acbasesub(acn, solvenum, passnum):
  ntrcostswAMPL = ampl.getParameter('ntrcostsw')
  ntrstatAMPL = ampl.getParameter('ntrstat')
  for i in range(1,1+acn.nontranscount_original):
-  #if (division == 3 and acn.numbuses < 10000 and passnum == 1) or (division == 4 and passnum == 1):
-  if (division == 3 and solvenum > 2) or (division == 4 and solvenum > 2):
+  if (allowswitch):
     ntrqualswVals[i] = acn.ournontrans[i].swqual
   else:
     ntrqualswVals[i] = 0
@@ -582,8 +613,7 @@ def acbasesub(acn, solvenum, passnum):
      trratingorigVals={}
      trratingorigAMPL = ampl.getParameter('trrating_original')
  for i in range(1,1+acn.transcount_original):
-  #if (division == 3 and acn.numbuses < 10000 and passnum == 1) or (division == 4 and passnum == 1):
-  if (division == 3 and solvenum > 2) or (division == 4 and solvenum > 2):
+  if (allowswitch):
     trqualswVals[i] = acn.ourtrans[i].swqual
   else:
     trqualswVals[i] = 0
@@ -1008,11 +1038,12 @@ def acbasesub(acn, solvenum, passnum):
   if forcefixing:
    keeploose = 0
 
-  if solvenum > 2 and division <= 2:
+  if solvenum >= 6:
    keeploose = 1
-   log.joint("solvenum=" + str(solvenum) + " -- keeploose=1 for taps!\n")
+
   #print("solvenum=",solvenum," division=",division)
   #breakexit("hhhhh")
+  log.joint("solvenum=" + str(solvenum) + " -- keeploose=" + str(keeploose) +" for taps!\n")
 
   if keeploose > 0:
       heurmaxxstfVals[cnt1] = acn.ourtrans[cnt1].maxxstf
@@ -1178,7 +1209,8 @@ def acbasesub(acn, solvenum, passnum):
  #timelimit = min(remaintime,acn.maxtime-75)
  timelimit = min(remaintime-35,acn.maxtime-75)
  timelimit = max(timelimit, 0.001)
- if solvenum <= 2 or division > 2 or 1:
+ timelimit = 900
+ if 1:
      muruleopt = ' bar_murule=0'  #pred-corr
  else:
      muruleopt = ' bar_murule=1'  #monotone
@@ -1215,17 +1247,17 @@ def acbasesub(acn, solvenum, passnum):
  if usescript:
 
   try:
-      if solvenum == 0 or solvenum == 3:
+      if solvenum == 0 or solvenum == 3 or solvenum == 6 or solvenum == 9:
          if passnum == 1:
            log.joint(' !!! solvenum=0/3, fixed solve (solve_script)\n')
            ampl.eval('include solve_script;')
          else: #passnum=2
            log.joint(' !!! solvenum=0/3, unfixed solve (solve_script12)\n')
            ampl.eval('include solve_script12;')
-      elif solvenum == 1 or solvenum == 4:
+      elif solvenum == 1 or solvenum == 4 or solvenum == 7 or solvenum == 10:
          log.joint(' !!! solvenum=1/4, fixed swsh solve (solve_script11)\n')
          ampl.eval('include solve_script11;')
-      elif solvenum == 2 or solvenum == 5:
+      elif solvenum == 2 or solvenum == 5 or solvenum == 8 or solvenum == 11:
          log.joint(' !!! solvenum=2/5, unfixed solve (solve_script12)\n')
          ampl.eval('include solve_script12;')
       else:
