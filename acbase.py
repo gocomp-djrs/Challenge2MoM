@@ -63,20 +63,22 @@ def acbase(acn, procid):
  acn.basesol_taps = np.zeros((maxsolves,acn.transcount_original), dtype=int)
  # Get size of basesw so we can create corresponding numpy array
  numxha0 = 0
+ acn.basesw0={}
  for h in range(1,1 + acn.numswitchedshunts):
    oursh = acn.ourswshunts[h]
    if oursh.status:
      for a in range(1,1+oursh.len):
        if oursh.n[a] > 0:
+         acn.basesw0[oursh.count, a] = -1;
          numxha0 += 1
  #print('numxha0=',numxha0)
  #breakexit('numxha0')
  acn.numxha0 = numxha0
  acn.basesol_sw = np.zeros((maxsolves,numxha0), dtype=int)
- acn.basesw0={}
+ #acn.basesw0={}
 
  # BASE SOLVE LOOP BEGIN
- useparallel = 1
+ useparallel = 0
  while stop == 0:
    if useparallel == 0:
      log.joint('---> sequential base solves\n')
@@ -237,7 +239,9 @@ def acbase(acn, procid):
                  for (h,a) in acn.basesw0:
                    acn.basesw[h,a] = acn.basesol_sw[solvenum,j]
                    j=j+1
-                 #print('basesw=',basesw)
+                 #print('basesw0=',acn.basesw0)
+                 #print('basesw=',acn.basesw)
+                 #print('basesol_sw=',acn.basesol_sw[solvenum,:])
                  #breakexit('zzz')
                  write_base_files(acn,acn.basebusVmags,acn.basebusVangles,acn.ploads,acn.basegenP,acn.basegenON,acn.basegensu,acn.basegensd,acn.basentrON,acn.basetrON,acn.basesw)
                  acn.improvedbase = 1
@@ -1614,9 +1618,10 @@ def acbasesub(acn, solvenum, passnum):
  acn.basesol_trON[solvenum,:] = basetrON[:]
  acn.basesol_taps[solvenum,:] = basetaps[:]
  #acn.basesol_sw filled in above; store the initial one
- if solvenum == 0:
-   acn.basesw0 = basesw
-   #breakexit('basesw0')
+ #if solvenum == 0:
+ #  acn.basesw0 = basesw
+ #  print('basesw0=',acn.basesw0)
+ #  breakexit('basesw0')
 
 #############
 
