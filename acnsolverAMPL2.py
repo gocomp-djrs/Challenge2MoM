@@ -423,7 +423,7 @@ def acnsolverAMPL2(alldata):
      sys.stderr =  open(os.devnull, 'w')
 
  # Initialize
- max_passes = 2
+ max_passes = 3
  passnum = 1
  numnegscores = 0
  stop = 0
@@ -439,10 +439,10 @@ def acnsolverAMPL2(alldata):
          conlabel = conlabelsorted[h]
          ctg = contingencies[conlabel]
          ctgidx = contingencysortedorder[h]
-         #print("conlabel=",conlabel)
-         #print("ctgidx=",ctgidx)
-         #breakexit("before ctgsolve")
-         if 1 or conlabel == 'BR_24_33_1': #pick out specific contingency for debugging
+         if 1 or conlabel == 'CTG_000057': #pick out specific contingency for debugging
+             #print("conlabel=",conlabel," h=",h," numctgys=",numctgys," passnum=",passnum)
+             #print("ctgidx=",ctgidx)
+             #breakexit("before ctgsolve")
              ctgsolve(alldata, passnum, h+1, ctgidx, conlabel, ctg, contingencies, basebusVmags, basebusVangles, basentrON, basetrON, baseloadP, basegenP, basegenON, basegenSU, basegenSD, basesw, basexstf)
              breakexit("after ctgsolve")
              #sys.exit()
@@ -1516,8 +1516,9 @@ lb,_var[j].ub,_var[j].ub0);'     #shows full model
         #breakexit("overwrite")
     else:
         log.joint('using infeasible solution!\n')
-  #if (ctgsol_infeas or ctgsol_obj<0):
-  #    breakexit("bad ctg solution")
+  if (ctgsol_infeas or ctgsol_obj<0):
+      log.joint(str(conlabel) + ': bad solution!\n')
+  #    breakexit("1: bad ctg solution")
   #    sys.exit()
  except:
   log.joint("Error evaluating the contingency solution!\n")

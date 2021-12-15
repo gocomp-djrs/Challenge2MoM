@@ -972,9 +972,10 @@ lb,_var[j].ub,_var[j].ub0);'     #shows full model
      outfile.close()
 
  # Set Knitro options
+ acn.maxtime = 900
  maxtime = ' maxtime_real=' + str(acn.maxtime) + ' mip_maxtime_real=' + str(acn.maxtime) + ' ms_maxtime_real=' + str(acn.maxtime) # just in case we use multi-start
  #maxtime = ' maxtime_real=600 '
- ctg_options = 'outlev=0 outmode=0 debug=0 linsolver=6 par_numthreads=1 feastol=1e-5 ftol=1e-3 scale=0 honorbnds=1 cg_maxit=1 bar_murule=0 bar_refinement=1 bar_switchrule=0 bar_feasible=1 restarts=3 maxit=3000 presolve_tol=0.5'  # use bar_initpt=2 bar_directinterval=0 ?
+ ctg_options = 'outlev=0 outmode=0 debug=0 linsolver=6 outname="knitro.log" par_numthreads=1 feastol=1e-5 ftol=1e-3 scale=0 honorbnds=1 cg_maxit=1 bar_murule=0 bar_refinement=1 bar_switchrule=0 bar_feasible=1 restarts=3 maxit=3000 presolve_tol=0.5'  # use bar_initpt=2 bar_directinterval=0 ?
  just_feasible = 1 #ignoring optimality works quite well
  if just_feasible:
      ctg_options += ' opttol=1.0e30 opttol_abs=1e30'
@@ -1098,8 +1099,8 @@ lb,_var[j].ub,_var[j].ub0);'     #shows full model
  try:
   time1 = time.time()
   if usescript:
-      #ampl.eval('include solve_script2;')
-      solveout = ampl.getOutput('include solve_script2;')
+      ampl.eval('include solve_script2;')
+      #solveout = ampl.getOutput('include solve_script2;')
   else:
       #ampl.solve()
       #ampl.eval('solve > junk.txt;')  # use this to re-direct ampl output to junk file
@@ -1196,7 +1197,7 @@ lb,_var[j].ub,_var[j].ub0);'     #shows full model
   #    breakexit("infeasible")
   #if (ctgsol_obj < 0.0):
   #    log.joint(str(conlabel) + ': bad solution!\n')
-  #    breakexit("bad solution")
+  #    breakexit("2: bad ctg solution")
  except:
   #breakexit("acnsolverAMPLcon: Error evaluating the contingency solution!")
   print("acnsolveconthruH2: Error evaluating the contingency solution!")
@@ -1333,6 +1334,7 @@ def resolve_fixed2H2(acn, ampl, usescript, basegenON):
   # Now set options and solve with integer variables fixed
 
   try:
+    acn.maxtime = 900
     maxtime = ' maxtime_real=' + str(acn.maxtime) + ' mip_maxtime_real=' + str(acn.maxtime) + ' ms_maxtime_real=' + str(acn.maxtime) # just in case we use multi-start
     resolve_options = 'outlev=0 outmode=0 outname="knitro-fixed.log" debug=0 feastol=1e-5 feastol_abs=9e-5 ftol=1e-6 scale=0 honorbnds=0 cg_maxit=50 bar_murule=0 bar_feasible=0 bar_refinement=1 bar_initpi_mpec=0.0 maxit=3000 alg=1 strat_warm_start=1 bar_initpt=2 bar_initmu=1e-6 bar_slackboundpush=1e-6 infeastol=1e-5 restarts=1 presolve_initpt=1 presolve_tol=0.5'
     #resolve_options = 'outlev=4 outmode=2 debug=1 feastol=1e-5 opttol=1e-3 ftol=1e-6 scale=0 honorbnds=0 cg_maxit=50 bar_murule=1 strat_warm_start=1 bar_refinement=1 bar_initpi_mpec=0.0 maxit=100 alg=3'
@@ -1346,8 +1348,8 @@ def resolve_fixed2H2(acn, ampl, usescript, basegenON):
     if (acn.numbuses < 10000):
       resolve_options += ' bar_maxcrossit=1'
     ampl.setOption('knitro_options', resolve_options)
-    #ampl.eval('include resolve_script2;')
-    solveout = ampl.getOutput('include resolve_script2;')
+    ampl.eval('include resolve_script2;')
+    #solveout = ampl.getOutput('include resolve_script2;')
     #ampl.solve()
     #ampl.eval('solve > junk.txt')  # use this to re-direct ampl output to junk file
     #ampl.eval('solve > /dev/null') # use this to re-direct ampl output to null device
