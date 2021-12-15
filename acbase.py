@@ -169,55 +169,11 @@ def acbase(acn, procid):
                  log.joint('We found a base solution ' +str(solvenum)+' better than current solution.\n')
                  # We've computed a base case solution that is better than the
                  # current best solution, so overwrite with this one
-                 # TBD: BETTER WAY TO HANDLE THIS COPY!
-                 if solvenum==0:
-                   best = 0
-                   os.popen('\cp base_0.txt solution_BASECASE.txt')
-                   os.popen('\cp base_0.bin solution_BASECASE.bin')
-                 elif solvenum==1:
-                   best = 1
-                   os.popen('\cp base_1.txt solution_BASECASE.txt')
-                   os.popen('\cp base_1.bin solution_BASECASE.bin')
-                 elif solvenum==2:
-                   best = 2
-                   os.popen('\cp base_2.txt solution_BASECASE.txt')
-                   os.popen('\cp base_2.bin solution_BASECASE.bin')
-                 elif solvenum==3:
-                   best = 3
-                   os.popen('\cp base_3.txt solution_BASECASE.txt')
-                   os.popen('\cp base_3.bin solution_BASECASE.bin')
-                 elif solvenum==4:
-                   best = 4
-                   os.popen('\cp base_4.txt solution_BASECASE.txt')
-                   os.popen('\cp base_4.bin solution_BASECASE.bin')
-                 elif solvenum==5:
-                   best = 5
-                   os.popen('\cp base_5.txt solution_BASECASE.txt')
-                   os.popen('\cp base_5.bin solution_BASECASE.bin')
-                 elif solvenum==6:
-                   best = 6
-                   os.popen('\cp base_6.txt solution_BASECASE.txt')
-                   os.popen('\cp base_6.bin solution_BASECASE.bin')
-                 elif solvenum==7:
-                   best = 7
-                   os.popen('\cp base_7.txt solution_BASECASE.txt')
-                   os.popen('\cp base_7.bin solution_BASECASE.bin')
-                 elif solvenum==8:
-                   best = 8
-                   os.popen('\cp base_8.txt solution_BASECASE.txt')
-                   os.popen('\cp base_8.bin solution_BASECASE.bin')
-                 elif solvenum==9:
-                   best = 9
-                   os.popen('\cp base_9.txt solution_BASECASE.txt')
-                   os.popen('\cp base_9.bin solution_BASECASE.bin')
-                 elif solvenum==10:
-                   best = 10
-                   os.popen('\cp base_10.txt solution_BASECASE.txt')
-                   os.popen('\cp base_10.bin solution_BASECASE.bin')
-                 elif solvenum==11:
-                   best = 11
-                   os.popen('\cp base_11.txt solution_BASECASE.txt')
-                   os.popen('\cp base_11.bin solution_BASECASE.bin')
+                 best = solvenum
+                 tmpfiletxt = "base_" + str(solvenum) + ".txt"
+                 tmpfilebin = "base_" + str(solvenum) + ".bin"
+                 shutil.copyfile(tmpfiletxt, "solution_BASECASE.txt")
+                 shutil.copyfile(tmpfilebin, "solution_BASECASE.bin")
                  # Now write out individual base solution components
                  # needed for contingency modeling to files so that they can be read in by
                  # MyPython2.py->acnsolverAMPL2.py
