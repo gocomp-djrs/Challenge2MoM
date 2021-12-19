@@ -1009,7 +1009,7 @@ def acnheurbase1sub(acn, procid, passnum):
      base_options += ' opttol=1.0e-3'
  if (acn.numbuses < 10000):
      base_options += ' bar_maxcrossit=1'
- mip_options = ' mip_multistart=1 mip_terminate=0 mip_outinterval=1 mip_outlevel=1 mip_debug=1 mip_outsub=2 mip_nodealg=1 mip_intvar_strategy=0'
+ mip_options = ' mip_terminate=0 mip_outinterval=1 mip_outlevel=1 mip_debug=1 mip_outsub=2 mip_nodealg=1 mip_intvar_strategy=0'
  if (1):
      intvar_strategy = ' mip_intvar_strategy=0'  # handle integer vars directly
  else:

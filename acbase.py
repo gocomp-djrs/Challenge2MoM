@@ -85,14 +85,15 @@ def acbase(acn, procid):
      # Sequential implementation of base solve loop
      for h in range(maxsolves):
          solvenum = h
+         #solvenum = 4
          acbasesub(acn, solvenum, passnum)
          #breakexit('passnum')
          stop = 0
          passnum += 1
          elapsedtime = time.time()-acn.timebeg
          remaintime = acn.maxtime - elapsedtime
-         if remaintime < 30:
-           stop = 1
+         #if remaintime < 30:
+         #  stop = 1
          if passnum > max_passes:
            stop = 1
          #stop = 0 # use to force stop
@@ -119,7 +120,8 @@ def acbase(acn, procid):
                      #    needtosolve = 0 #if negative scores, focus on improving only these for now
                      limit = 60.0
                      #print('i=',i,' modulo
-                     if i==modulo and needtosolve == 1 and remaintime >= limit:
+                     if i==modulo and needtosolve == 1:
+                     #if i==modulo and needtosolve == 1 and remaintime >= limit:
                          try:
                              log.joint("Solve base "+str(h)+" with procid "+str(procid)+" core "+str(i)+" remain_time="+str(remaintime)+"\n")
                              acbasesub(acn, solvenum, passnum)
@@ -1180,7 +1182,7 @@ def acbasesub(acn, solvenum, passnum):
  logname = ' outname='+'"'+'knitro'+str(solvenum)+'.log'+'"'
  maxtime = ' maxtime_real=' + str(timelimit) + ' mip_maxtime_real=' + str(timelimit) + ' ms_maxtime_real=' + str(timelimit) # just in case we use multi-start
  #maxtime = ' maxtime_real=600 '
- base_options = 'outlev=4 outmode=2 debug=0 presolve_tol=0.5 linsolver=6 par_numthreads=1 feastol=1e-5 ftol=1e-3 scale=0 honorbnds=0 cg_maxit=1 bar_refinement=1 bar_switchrule=0 bar_feasible=1 restarts=3 restarts_maxit=1000 maxit=30000'  # use bar_initpt=2 bar_directinterval=0 ?
+ base_options = 'outlev=4 outmode=2 debug=0 presolve_tol=0.5 linsolver=6 par_numthreads=4 feastol=1e-5 ftol=1e-3 scale=0 honorbnds=0 cg_maxit=1 bar_refinement=1 bar_switchrule=0 bar_feasible=1 restarts=3 restarts_maxit=1000 maxit=30000'  # use bar_initpt=2 bar_directinterval=0 ?
  just_feasible = 1 #ignoring optimality works quite well
  if just_feasible:
      base_options += ' opttol=1.0e30 opttol_abs=1e30'
@@ -1188,7 +1190,7 @@ def acbasesub(acn, solvenum, passnum):
      base_options += ' opttol=1.0e-3'
  if (acn.numbuses < 10000):
      base_options += ' bar_maxcrossit=1'
- mip_options = ' mip_multistart=1 mip_terminate=0 mip_outinterval=1 mip_outlevel=1 mip_debug=1 mip_outsub=2 mip_nodealg=1 mip_intvar_strategy=0'
+ mip_options = ' mip_terminate=0 mip_outinterval=1 mip_outlevel=1 mip_debug=1 mip_outsub=2 mip_nodealg=1 mip_intvar_strategy=0'
  if (1):
      intvar_strategy = ' mip_intvar_strategy=0'  # handle integer vars directly
  else:
@@ -1268,7 +1270,7 @@ def acbasesub(acn, solvenum, passnum):
  remaintime = acn.maxtime - elapsedtime
  print('Before solve 2: remain time = ',remaintime, ' elapsed time= ',elapsedtime)
  log.joint('Before solve 2: remain time = ' + str(remaintime) + ' elapsed time= ' + str(elapsedtime) +'\n')
- if remaintime > 30:
+ if remaintime > 30 or 1:
      ampl.setOption('presolve_eps', 1.0e-6)
      resolve_fixed(acn, ampl, usescript, solvenum, userelax)
 

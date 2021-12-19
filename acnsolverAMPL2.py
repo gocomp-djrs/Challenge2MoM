@@ -414,7 +414,7 @@ def acnsolverAMPL2(alldata):
  ctgnum = 0
  first = 1
  numnodes = acn.numnodes
- useparallel = 1
+ useparallel = 0
 
  # use this to suppress stdout in parallel contingency loop
  nooutput = 0
@@ -423,7 +423,7 @@ def acnsolverAMPL2(alldata):
      sys.stderr =  open(os.devnull, 'w')
 
  # Initialize
- max_passes = 3
+ max_passes = 1
  passnum = 1
  numnegscores = 0
  stop = 0
@@ -439,12 +439,12 @@ def acnsolverAMPL2(alldata):
          conlabel = conlabelsorted[h]
          ctg = contingencies[conlabel]
          ctgidx = contingencysortedorder[h]
-         if 1 or conlabel == 'CTG_000057': #pick out specific contingency for debugging
+         if 1 or conlabel == 'CTG_000551': #pick out specific contingency for debugging
              #print("conlabel=",conlabel," h=",h," numctgys=",numctgys," passnum=",passnum)
              #print("ctgidx=",ctgidx)
              #breakexit("before ctgsolve")
              ctgsolve(alldata, passnum, h+1, ctgidx, conlabel, ctg, contingencies, basebusVmags, basebusVangles, basentrON, basetrON, baseloadP, basegenP, basegenON, basegenSU, basegenSD, basesw, basexstf)
-             breakexit("after ctgsolve")
+             #breakexit("after ctgsolve")
              #sys.exit()
    else:
      # Parallel implementation of contingency loop using forks
