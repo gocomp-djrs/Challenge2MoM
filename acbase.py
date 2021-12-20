@@ -79,6 +79,7 @@ def acbase(acn, procid):
 
  # BASE SOLVE LOOP BEGIN
  useparallel = 0
+ acn.useparallel = useparallel
  while stop == 0:
    if useparallel == 0:
      log.joint('---> sequential base solves\n')
@@ -1182,7 +1183,9 @@ def acbasesub(acn, solvenum, passnum):
  logname = ' outname='+'"'+'knitro'+str(solvenum)+'.log'+'"'
  maxtime = ' maxtime_real=' + str(timelimit) + ' mip_maxtime_real=' + str(timelimit) + ' ms_maxtime_real=' + str(timelimit) # just in case we use multi-start
  #maxtime = ' maxtime_real=600 '
- base_options = 'outlev=4 outmode=2 debug=0 presolve_tol=0.5 linsolver=6 par_numthreads=4 feastol=1e-5 ftol=1e-3 scale=0 honorbnds=0 cg_maxit=1 bar_refinement=1 bar_switchrule=0 bar_feasible=1 restarts=3 restarts_maxit=1000 maxit=30000'  # use bar_initpt=2 bar_directinterval=0 ?
+ base_options = 'outlev=4 outmode=2 debug=0 presolve_tol=0.5 linsolver=6 feastol=1e-5 ftol=1e-3 scale=0 honorbnds=0 cg_maxit=1 bar_refinement=1 bar_switchrule=0 bar_feasible=1 restarts=3 restarts_maxit=1000 maxit=30000'  # use bar_initpt=2 bar_directinterval=0 ?
+ if acn.useparallel:
+     base_options += ' par_numthreads=1'
  just_feasible = 1 #ignoring optimality works quite well
  if just_feasible:
      base_options += ' opttol=1.0e30 opttol_abs=1e30'

@@ -415,6 +415,7 @@ def acnsolverAMPL2(alldata):
  first = 1
  numnodes = acn.numnodes
  useparallel = 0
+ acn.useparallel = useparallel
 
  # use this to suppress stdout in parallel contingency loop
  nooutput = 0
@@ -620,9 +621,9 @@ def ctgsolve(alldata, passnum, ctgcount, ctgidx, conlabel, ctg, contingencies, b
 
         elapsedtime = time.time()-acn.timebeg
         remaintime = acn.maxtime - elapsedtime
-        if remaintime < 30.0:
-           log.joint("Skipping writing contingency because running out of time: time left = "+ str(remaintime) + "\n")
-           skip = 1
+        #if remaintime < 30.0:
+        #   log.joint("Skipping writing contingency because running out of time: time left = "+ str(remaintime) + "\n")
+        #   skip = 1
 
         #if skip < 1:
            # Now compute score for contingency solution and check feasibility
@@ -1407,7 +1408,9 @@ lb,_var[j].ub,_var[j].ub0);'     #shows full model
  # Set Knitro options
  maxtime = ' maxtime_real=' + str(acn.maxtime) + ' mip_maxtime_real=' + str(acn.maxtime) + ' ms_maxtime_real=' + str(acn.maxtime) # just in case we use multi-start
  #maxtime = ' maxtime_real=600 '
- ctg_options = 'outlev=0 outmode=0 debug=0 linsolver=6 par_numthreads=1 feastol=1e-5 ftol=1e-3 scale=0 honorbnds=1 cg_maxit=1 bar_murule=1 bar_refinement=1 bar_switchrule=0 bar_feasible=1 restarts=3 maxit=3000'  # use bar_initpt=2 bar_directinterval=0 ?
+ ctg_options = 'outlev=0 outmode=0 debug=0 linsolver=6 feastol=1e-5 ftol=1e-3 scale=0 honorbnds=1 cg_maxit=1 bar_murule=1 bar_refinement=1 bar_switchrule=0 bar_feasible=1 restarts=3 maxit=3000'  # use bar_initpt=2 bar_directinterval=0 ?
+ if acn.useparallel:
+     ctg_options += ' par_numthreads=1'
  just_feasible = 1 #ignoring optimality works quite well
  if just_feasible:
      ctg_options += ' opttol=1.0e30 opttol_abs=1e30'
