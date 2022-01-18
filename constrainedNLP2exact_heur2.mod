@@ -267,6 +267,10 @@ sum{g in 1..G: g != genout_index} Deltact*(-gencost0[g] - Oncost[g]*genon[g]) - 
 - sum{f in 1..TRcnt_original: trqualsw[f]>0 and trstat[f]>0 and f != trout_index} trcostsw[f]*(trstat[f]-trON[f])       #penalize transformer switch OFF
 - sum{f in 1..TRcnt_original: f != trout_index} (Deltact*trexceed[f]);           #penalize transformer exceedance
 
+# Enforce hard limit on buscost
+#subject to objbnd:
+#   sum{i in 1..I} Deltact*buscost0[i] <= 1e6;
+
 # bus imbalance objective components
 
 subject to totalPplus{i in 1..I}: #constraint (3)
@@ -283,6 +287,7 @@ relaxPminus[i] = sum{n in 1..Pnumcblocks} Pminusblock0[i,n];
 
 #enforce hard upper bound on violation
 #subject to PBalanceViolLimit{i in 1..I}: relaxPplus[i] + relaxPminus[i] <= Pcostcblock[Pnumcblocks];
+#subject to PBalanceViolLimit{i in 1..I}: relaxPplus[i] + relaxPminus[i] <= 1.0e-2;
 
 subject to totalQplus{i in 1..I}: #constraint (7)
 relaxQplus[i] = sum{n in 1..Qnumcblocks} Qplusblock0[i,n];
@@ -298,6 +303,7 @@ relaxQminus[i] = sum{n in 1..Qnumcblocks} Qminusblock0[i,n];
 
 #enforce hard upper bound on violation
 #subject to QBalanceViolLimit{i in 1..I}: relaxQplus[i] + relaxQminus[i] <= Qcostcblock[Qnumcblocks];
+#subject to QBalanceViolLimit{i in 1..I}: relaxQplus[i] + relaxQminus[i] <= 1.0e-2;
 
 # load benefit objective components
 
