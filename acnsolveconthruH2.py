@@ -975,7 +975,7 @@ lb,_var[j].ub,_var[j].ub0);'     #shows full model
  acn.maxtime = 900
  maxtime = ' maxtime_real=' + str(acn.maxtime) + ' mip_maxtime_real=' + str(acn.maxtime) + ' ms_maxtime_real=' + str(acn.maxtime) # just in case we use multi-start
  #maxtime = ' maxtime_real=600 '
- ctg_options = 'outlev=0 outmode=0 debug=0 linsolver=6 outname="knitro.log" feastol=1e-5 ftol=1e-3 scale=0 honorbnds=1 cg_maxit=1 bar_murule=0 bar_refinement=1 bar_switchrule=0 bar_feasible=1 restarts=3 maxit=3000 presolve_tol=0.5'  # use bar_initpt=2 bar_directinterval=0 ?
+ ctg_options = 'outlev=4 outmode=0 debug=0 linsolver=6 outname="knitro.log" feastol=1e-5 ftol=1e-3 scale=0 honorbnds=1 cg_maxit=1 bar_murule=0 bar_refinement=1 bar_switchrule=0 bar_feasible=1 restarts=3 maxit=3000 presolve_tol=0.5'  # use bar_initpt=2 bar_directinterval=0 ?
  if acn.useparallel:
      ctg_options += ' par_numthreads=1'
  just_feasible = 1 #ignoring optimality works quite well
@@ -985,17 +985,17 @@ lb,_var[j].ub,_var[j].ub0);'     #shows full model
      ctg_options += ' opttol=1.0e-3'
  if (acn.numbuses < 10000):
      ctg_options += ' bar_maxcrossit=1'
- mip_options = ' mip_heuristic=0 mip_terminate=1 mip_outinterval=1 mip_outlevel=3 mip_debug=1 mip_outsub=2 mip_nodealg=1 mip_intvar_strategy=0'
- if (acn.numbuses < 100):
+ mip_options = ' mip_terminate=1 mip_outinterval=1 mip_outlevel=3 mip_debug=0 mip_outsub=0 mip_nodealg=1'
+ if (1):
      intvar_strategy = ' mip_intvar_strategy=0'  # handle integer vars directly
  else:
      intvar_strategy = ' mip_intvar_strategy=2'  # convert binary vars to complementarity constraints
- if (acn.numbuses < 100):
-   relax = ' relax=1'
-   log.joint(' using relax = 0 because buses < 100\n')
+ if (0):
+   relax = ' relax=0'
+   log.joint(' using relax = 0 ...\n')
  else:
    relax = ' relax=1'
-   log.joint(' using relax = 1 because buses >= 100\n')
+   log.joint(' using relax = 1 ...\n')
  options = ctg_options + mip_options + maxtime + relax + intvar_strategy
  #print "options=",options
  ampl.setOption('knitro_options', options)

@@ -52,23 +52,24 @@ if ourobjective.feaserror >= 0.01 then {
 
    if 0 and ourobjective.feaserror >= 0.01 then {
 
-        unfix {h in 1..SWSHcnt, a in 1..bhasize[h]: swshactive[h]*nha[h,a]>0} xha[h,a];
-        solve;
+        #unfix {h in 1..SWSHcnt, a in 1..bhasize[h]: swshactive[h]*nha[h,a]>0} xha[h,a];
+        #solve;
 
         # Still not feasible - check if any generators turned off.
 	# If so, unfix them, so they can get turned on if needed.
-#	let count := 0;
-#   	for {g in 1..G} {
-#       	    if (genon[g] == 0 and g != genout_index) then {
-#	       unfix genon[g];
-#	       unfix genstartup[g];
-#	       unfix genshutdown[g];
-#	       let count := count + 1;
-#       	    }
-#   	}
-#	if count > 0 then {
-#	   solve;
-#	}
+	let count := 0;
+   	for {g in 1..G} {
+           if (genon[g] == 0 and g != genout_index) then {
+	       unfix genon[g];
+	       unfix genstartup[g];
+	       unfix genshutdown[g];
+	       let count := count + 1;
+           }
+   	}
+	display count;
+	if count > 0 then {
+	   solve;
+	}
 
 	#TBD:try other things (e.g. unfix lines that have been turned off
 
