@@ -78,7 +78,7 @@ def acbase(acn, procid):
  #acn.basesw0={}
 
  # BASE SOLVE LOOP BEGIN
- useparallel = 0
+ useparallel = 1
  acn.useparallel = useparallel
  while stop == 0:
    if useparallel == 0:
@@ -86,17 +86,16 @@ def acbase(acn, procid):
      # Sequential implementation of base solve loop
      for h in range(maxsolves):
          solvenum = h
-         #solvenum = 4
          acbasesub(acn, solvenum, passnum)
          #breakexit('passnum')
          stop = 0
-         passnum += 1
+         #passnum += 1
          elapsedtime = time.time()-acn.timebeg
          remaintime = acn.maxtime - elapsedtime
          #if remaintime < 30:
          #  stop = 1
-         if passnum > max_passes:
-           stop = 1
+         #if passnum > max_passes:
+         #  stop = 1
          #stop = 0 # use to force stop
    else:
      # Parallel implementation of base solve loop using forks
@@ -107,9 +106,10 @@ def acbase(acn, procid):
          try:
              pid = os.fork()
          except:
-             #print("Could not create a child process")
+             print("Could not create a child process")
              continue
          if pid == 0:
+             log.joint("In the child process after forking the child "+str(pid)+"\n")
              for h in range(maxsolves):
                  solvenum = h
                  if 1: # may impose condition here later
@@ -124,7 +124,7 @@ def acbase(acn, procid):
                      if i==modulo and needtosolve == 1:
                      #if i==modulo and needtosolve == 1 and remaintime >= limit:
                          try:
-                             log.joint("Solve base "+str(h)+" with procid "+str(procid)+" core "+str(i)+" remain_time="+str(remaintime)+"\n")
+                             log.joint("Solve base "+str(solvenum)+" (passnum="+str(passnum)+") with procid "+str(procid)+" core "+str(i)+" remain_time="+str(remaintime)+"\n")
                              acbasesub(acn, solvenum, passnum)
                          except:
                              log.joint("base solve "+str(h)+" encountered a problem inside acbasesub!\n")
@@ -133,7 +133,7 @@ def acbase(acn, procid):
              os._exit(os.EX_OK)
          else:
              pass
-             #print("In the parent process after forking the child {}".format(pid))
+             log.joint("In the parent process after forking the child "+str(pid)+"\n")
          #breakexit("loop")
      #breakexit('parallel contingency loop')
      for i in range(numcores):
