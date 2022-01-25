@@ -414,7 +414,7 @@ def acnsolverAMPL2(alldata):
  ctgnum = 0
  first = 1
  numnodes = acn.numnodes
- useparallel = 0
+ useparallel = 1
  acn.useparallel = useparallel
 
  # use this to suppress stdout in parallel contingency loop
@@ -424,7 +424,7 @@ def acnsolverAMPL2(alldata):
      sys.stderr =  open(os.devnull, 'w')
 
  # Initialize
- max_passes = 1
+ max_passes = 2
  passnum = 1
  numnegscores = 0
  stop = 0
@@ -463,7 +463,7 @@ def acnsolverAMPL2(alldata):
          try:
              pid = os.fork()
          except:
-             #print("Could not create a child process")
+             #print("Could not create as child process")
              continue
          if pid == 0:
              #for ctgidx, (conlabel, ctg) in enumerate(contingencies.items(), start=1):
@@ -1654,9 +1654,11 @@ def resolve_fixed2(acn, ampl, usescript, basegenON):
   # Now set options and solve with integer variables fixed
 
   try:
-    resolve_options = 'outlev=0 outmode=0 outname="knitro-fixed.log" debug=0 feastol=1e-5 feastol_abs=9e-5 ftol=1e-6 scale=0 honorbnds=0 cg_maxit=50 bar_murule=0 bar_feasible=0 bar_refinement=1 bar_initpi_mpec=0.0 maxit=3000 alg=1 strat_warm_start=1 bar_initpt=2 bar_initmu=1e-6 bar_slackboundpush=1e-6 infeastol=1e-5 restarts=1'
+    resolve_options = 'outlev=4 outmode=0 outname="knitro-fixed.log" debug=0 feastol=1e-5 feastol_abs=9e-5 ftol=1e-6 scale=0 honorbnds=0 cg_maxit=50 bar_murule=0 bar_feasible=0 bar_refinement=1 bar_initpi_mpec=0.0 maxit=3000 alg=1 strat_warm_start=1 bar_initpt=2 bar_initmu=1e-6 bar_slackboundpush=1e-6 infeastol=1e-5 restarts=1'
     mip_options = ' mip_heuristic=0 mip_terminate=1 mip_outinterval=1 mip_outlevel=1 mip_debug=0 mip_outsub=2 mip_nodealg=1 mip_intvar_strategy=0 mip_maxtime_real=60'
     resolve_options += mip_options
+    if acn.useparallel:
+     resolve_options += ' par_numthreads=1'
     just_feasible = 0
     if just_feasible:
       resolve_options += ' opttol=1.0e30 opttol_abs=1e30'
