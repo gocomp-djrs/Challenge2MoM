@@ -78,7 +78,7 @@ def acbase(acn, procid):
  #acn.basesw0={}
 
  # BASE SOLVE LOOP BEGIN
- useparallel = 1
+ useparallel = 0
  acn.useparallel = useparallel
  while stop == 0:
    if useparallel == 0:
