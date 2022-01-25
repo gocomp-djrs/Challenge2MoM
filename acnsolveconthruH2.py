@@ -1338,10 +1338,12 @@ def resolve_fixed2H2(acn, ampl, usescript, basegenON):
   try:
     acn.maxtime = 900
     maxtime = ' maxtime_real=' + str(acn.maxtime) + ' mip_maxtime_real=' + str(acn.maxtime) + ' ms_maxtime_real=' + str(acn.maxtime) # just in case we use multi-start
-    resolve_options = 'outlev=0 outmode=0 outname="knitro-fixed.log" debug=0 feastol=1e-5 feastol_abs=9e-5 ftol=1e-6 scale=0 honorbnds=0 cg_maxit=50 bar_murule=0 bar_feasible=0 bar_refinement=1 bar_initpi_mpec=0.0 maxit=3000 alg=1 strat_warm_start=1 bar_initpt=2 bar_initmu=1e-6 bar_slackboundpush=1e-6 infeastol=1e-5 restarts=1 presolve_initpt=1 presolve_tol=0.5'
+    resolve_options = 'outlev=4 outmode=0 outname="knitro-fixed.log" debug=0 feastol=1e-5 feastol_abs=9e-5 ftol=1e-6 scale=0 honorbnds=0 cg_maxit=50 bar_murule=0 bar_feasible=0 bar_refinement=1 bar_initpi_mpec=0.0 maxit=3000 alg=1 strat_warm_start=1 bar_initpt=2 bar_initmu=1e-6 bar_slackboundpush=1e-6 infeastol=1e-5 restarts=1 presolve_initpt=1 presolve_tol=0.5'
     #resolve_options = 'outlev=4 outmode=2 debug=1 feastol=1e-5 opttol=1e-3 ftol=1e-6 scale=0 honorbnds=0 cg_maxit=50 bar_murule=1 strat_warm_start=1 bar_refinement=1 bar_initpi_mpec=0.0 maxit=100 alg=3'
     mip_options = ' mip_heuristic=2 mip_terminate=1 mip_outinterval=1 mip_outlevel=1 mip_debug=0 mip_outsub=2 mip_nodealg=1 mip_intvar_strategy=0 mip_maxnodes=1'
     resolve_options += mip_options
+    if acn.useparallel:
+      resolve_options += ' par_numthreads=1'
     just_feasible = 0
     if just_feasible:
       resolve_options += ' opttol=1.0e30 opttol_abs=1e30'
