@@ -424,7 +424,8 @@ def acnsolverAMPL2(alldata):
      sys.stderr =  open(os.devnull, 'w')
 
  # Initialize
- max_passes = 2
+ max_passes = 4
+ #max_passes = 2
  passnum = 1
  numnegscores = 0
  stop = 0
@@ -440,7 +441,7 @@ def acnsolverAMPL2(alldata):
          conlabel = conlabelsorted[h]
          ctg = contingencies[conlabel]
          ctgidx = contingencysortedorder[h]
-         if 1 or conlabel == 'CTG_000551': #pick out specific contingency for debugging
+         if 1 or conlabel == 'CTG_000000': #pick out specific contingency for debugging
              #print("conlabel=",conlabel," h=",h," numctgys=",numctgys," passnum=",passnum)
              #print("ctgidx=",ctgidx)
              #breakexit("before ctgsolve")
@@ -478,7 +479,7 @@ def acnsolverAMPL2(alldata):
                      elapsedtime = time.time()-acn.timebeg
                      remaintime = acn.maxtime - elapsedtime
                      needtosolve = 1
-                     if passnum > 2 and numnegscores > 0 and acn.scores[h] >= 0:
+                     if passnum > 4 and acn.scores[h] >= 0:
                          needtosolve = 0 #if negative scores, focus on improving only these for now
                      limit = max(180,0.1*numctgys)
                      #if i==modulo and ctgidx >= first and needtosolve == 1:  # ignore time limit
@@ -739,10 +740,10 @@ def acnsolverAMPLcon(alldata, passnum, ctgcount, ctgidx, conlabel, ctg, continge
      else:
          maxexceptions = 5 #10
 
-     if division < 3:
-         maxexceptions = maxexceptions * passnum
-     elif passnum > 1:
-         maxexceptions = maxexceptions * (passnum-1)
+     if passnum > 2 and passnum <= 4:
+         maxexceptions = maxexceptions * 2
+     elif passnum > 4 and passnum <= 6:
+         maxexceptions = maxexceptions * 3
 
      freeze = fixall = 1
      #print("division=",acn.division," passnum=",passnum)

@@ -341,7 +341,7 @@ def acnsolveconthruH2(alldata,acn, log, passnum, ctgcount, ctgidx, conlabel, ctg
  ntrstatAMPL = ampl.getParameter('ntrstat')
  ntrratingAMPL = ampl.getParameter('ntrratingct')
  for i in range(1,1+acn.nontranscount_original):
-  if division > 2 and passnum > 1:
+  if passnum == 2 or passnum == 4 or passnum == 6:
      ntrqualswVals[i] = acn.ournontrans[i].swqual
   else:
      ntrqualswVals[i] = 0
@@ -368,7 +368,7 @@ def acnsolveconthruH2(alldata,acn, log, passnum, ctgcount, ctgidx, conlabel, ctg
  trratingVals={}
  trratingAMPL = ampl.getParameter('trratingct')
  for i in range(1,1+acn.transcount_original):
-  if division > 2 and passnum > 1:
+  if passnum == 2 or passnum == 4 or passnum == 6:
      trqualswVals[i] = acn.ourtrans[i].swqual
   else:
      trqualswVals[i] = 0
@@ -924,7 +924,8 @@ def acnsolveconthruH2(alldata,acn, log, passnum, ctgcount, ctgidx, conlabel, ctg
 
  for h in range(1,1 + acn.numswitchedshunts):
   oursh = acn.ourswshunts[h]
-  dofixit = (inexceptions1[oursh.ourbus.count] is False)
+  #dofixit = (inexceptions1[oursh.ourbus.count] is False)
+  dofixit = inexceptions1[oursh.ourbus.count] == 0
   #print('h',h,'buscount',oursh.ourbus.count,'shcount',oursh.count,'dofixit',dofixit)
 
   if oursh.status:
@@ -1340,7 +1341,7 @@ def resolve_fixed2H2(acn, ampl, usescript, basegenON):
     maxtime = ' maxtime_real=' + str(acn.maxtime) + ' mip_maxtime_real=' + str(acn.maxtime) + ' ms_maxtime_real=' + str(acn.maxtime) # just in case we use multi-start
     resolve_options = 'outlev=4 outmode=0 outname="knitro-fixed.log" debug=0 feastol=1e-5 feastol_abs=9e-5 ftol=1e-6 scale=0 honorbnds=0 cg_maxit=50 bar_murule=0 bar_feasible=0 bar_refinement=1 bar_initpi_mpec=0.0 maxit=3000 alg=1 strat_warm_start=1 bar_initpt=2 bar_initmu=1e-6 bar_slackboundpush=1e-6 infeastol=1e-5 restarts=1 presolve_initpt=1 presolve_tol=0.5'
     #resolve_options = 'outlev=4 outmode=2 debug=1 feastol=1e-5 opttol=1e-3 ftol=1e-6 scale=0 honorbnds=0 cg_maxit=50 bar_murule=1 strat_warm_start=1 bar_refinement=1 bar_initpi_mpec=0.0 maxit=100 alg=3'
-    mip_options = ' mip_heuristic=2 mip_terminate=1 mip_outinterval=1 mip_outlevel=1 mip_debug=0 mip_outsub=2 mip_nodealg=1 mip_intvar_strategy=0 mip_maxnodes=1'
+    mip_options = ' mip_terminate=1 mip_outinterval=1 mip_outlevel=1 mip_debug=0 mip_outsub=2 mip_nodealg=1 mip_intvar_strategy=0 mip_numthreads=4'
     resolve_options += mip_options
     if acn.useparallel:
       resolve_options += ' par_numthreads=1'
